@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milionerzy - Sklep</title>
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+    <div class="spotlight"></div>
+    <div class="stars"></div>
+
+    <nav class="nav-back">
+        <a href="index.html">&#8592; Powrot do menu</a>
+    </nav>
+
+    <div class="container">
+        <div class="shop-container">
+            <h1 class="shop-title">Sklep</h1>
+            <p class="shop-balance">Twoje pieniadze: <span id="money-amount">0 PLN</span></p>
+
+            <!-- Motywy wizualne -->
+            <section class="shop-section">
+                <h2 class="shop-section-title">Motywy wizualne</h2>
+                <div class="shop-items" id="themes-container"></div>
+            </section>
+
+            <!-- Tla -->
+            <section class="shop-section">
+                <h2 class="shop-section-title">Tla</h2>
+                <div class="shop-items" id="backgrounds-container"></div>
+            </section>
+
+            <!-- Kola ratunkowe -->
+            <section class="shop-section">
+                <h2 class="shop-section-title">Kola ratunkowe</h2>
+                <div class="shop-items" id="lifelines-container"></div>
+            </section>
+        </div>
+    </div>
+
+    <script type="module" src="src/shop-entry.ts"></script>
+</body>
+</html>

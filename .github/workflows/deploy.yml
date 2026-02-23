@@ -1,0 +1,53 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'terraform/**'
+      - 'docs/**'
+      - '*.md'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared
+        run: pnpm --filter @milionerzy/shared build
+
+      - name: Build backend
+        run: pnpm --filter @milionerzy/backend build
+
+      - name: Build frontend
+        run: pnpm --filter @milionerzy/frontend build
+
+      - name: Deploy functions
+        run: npx firebase-tools deploy --only functions --project ${{ secrets.GCP_PROJECT_ID }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy hosting
+        run: npx firebase-tools deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

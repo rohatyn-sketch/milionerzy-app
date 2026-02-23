@@ -1,0 +1,2 @@
+export const DAILY_QUESTIONS_COUNT = 5;
+export const DAILY_MONEY_MULTIPLIER = 1.5;

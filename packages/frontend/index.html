@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milionerzy - Edukacja z Fizyka</title>
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+    <div class="spotlight"></div>
+    <div class="stars"></div>
+
+    <!-- Auth area - top right -->
+    <div class="auth-area" id="auth-area"></div>
+
+    <div class="container">
+        <div class="menu-container">
+            <h1 class="title">Milionerzy</h1>
+            <p class="subtitle" id="subtitle-text"></p>
+
+            <div class="class-selector" id="class-selector"></div>
+
+            <div class="menu-buttons">
+                <a href="game.html" class="btn btn-primary">Graj</a>
+                <a href="game.html?practice=true" class="btn btn-practice" id="practice-btn">Cwicz <span id="practice-count"></span></a>
+                <a href="shop.html" class="btn btn-secondary">Sklep</a>
+                <button class="btn btn-help" id="formulas-btn">Wzory</button>
+            </div>
+
+            <!-- Wyzwanie dnia -->
+            <div class="daily-section" id="daily-section">
+                <h3 class="daily-title">Wyzwanie dnia</h3>
+                <p class="daily-status" id="daily-status"></p>
+                <a href="game.html?daily=true" class="btn btn-daily" id="daily-btn">Zagraj</a>
+                <p class="daily-countdown" id="daily-countdown"></p>
+            </div>
+
+            <!-- Tablica wynikow - podglad -->
+            <div class="leaderboard-section">
+                <h3 class="leaderboard-title">Najlepsze wyniki</h3>
+                <div id="leaderboard-preview"></div>
+            </div>
+
+            <div class="money-display">
+                Twoje pieniadze: <span id="money-amount">0 PLN</span>
+            </div>
+
+            <div class="stats-display" style="margin-top: 20px; color: var(--text-secondary); font-size: 0.9rem;">
+                <p>Rozegrane gry: <span id="games-played">0</span> | Wygrane: <span id="games-won">0</span> | Najlepsza seria: <span id="best-streak">0</span></p>
+            </div>
+
+            <!-- Przyciski dzwieku -->
+            <div class="sound-toggles">
+                <button class="sound-toggle" id="sfx-toggle">SFX: ON</button>
+                <button class="sound-toggle" id="music-toggle">Muzyka: OFF</button>
+            </div>
+
+            <div class="code-input-container" style="margin-top: 20px;">
+                <input type="text" id="code-input" placeholder="Wpisz kod..." style="padding: 10px; border-radius: 8px; border: 2px solid var(--primary-color); background: rgba(255,255,255,0.1); color: var(--text-color); font-size: 1rem; width: 150px; text-align: center;">
+                <button id="code-btn" class="btn" style="padding: 10px 20px; margin-left: 10px;">Uzyj kodu</button>
+                <p id="code-message" style="margin-top: 10px; font-size: 0.9rem;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal z wzorami -->
+    <div class="formulas-modal" id="formulas-modal">
+        <div class="formulas-content">
+            <button class="formulas-close" id="formulas-close">&times;</button>
+            <h2 class="formulas-title">Wzory i oznaczenia</h2>
+
+            <div class="formulas-section">
+                <h3>Oznaczenia liter</h3>
+                <div class="formula-item"><span class="formula-letter">p (ro)</span><span class="formula-desc">gestosc - ile masy przypada na jednostke objetosci [kg/m^3]</span></div>
+                <div class="formula-item"><span class="formula-letter">m</span><span class="formula-desc">masa - ilosc materii w ciele [kg]</span></div>
+                <div class="formula-item"><span class="formula-letter">V</span><span class="formula-desc">objetosc - ile miejsca zajmuje cialo [m^3]</span></div>
+                <div class="formula-item"><span class="formula-letter">p</span><span class="formula-desc">cisnienie - sila na jednostke powierzchni [Pa]</span></div>
+                <div class="formula-item"><span class="formula-letter">F</span><span class="formula-desc">sila - dzialanie na cialo [N - niuton]</span></div>
+                <div class="formula-item"><span class="formula-letter">S</span><span class="formula-desc">powierzchnia - pole na ktore dziala sila [m^2]</span></div>
+                <div class="formula-item"><span class="formula-letter">g</span><span class="formula-desc">przyspieszenie grawitacyjne - ok. 10 m/s^2 na Ziemi</span></div>
+                <div class="formula-item"><span class="formula-letter">h</span><span class="formula-desc">wysokosc/glebokosc [m]</span></div>
+                <div class="formula-item"><span class="formula-letter">Fw</span><span class="formula-desc">sila wyporu - sila wypychajaca cialo w gore [N]</span></div>
+            </div>
+
+            <div class="formulas-section">
+                <h3>Wazne wzory</h3>
+                <div class="formula-box">
+                    <div class="formula-name">Gestosc:</div>
+                    <div class="formula-equation">p = m / V</div>
+                    <div class="formula-explain">gestosc = masa / objetosc</div>
+                    <div class="formula-when"><strong>Kiedy uzywac?</strong> Gdy chcesz sprawdzic z czego jest zrobiony przedmiot lub czy cos zatonie/poplynie.</div>
+                    <div class="formula-example"><strong>Przyklad:</strong> Kostka ma mase 400g i objetosc 200cm3. Jaka jest jej gestosc?<br><span class="formula-solution">p = m/V = 400g / 200cm3 = <strong>2 g/cm3</strong></span></div>
+                    <div class="formula-variants"><strong>Przeksztalcenia:</strong><br>Szukasz masy? <span class="formula-mini">m = p * V</span><br>Szukasz objetosci? <span class="formula-mini">V = m / p</span></div>
+                </div>
+                <div class="formula-box">
+                    <div class="formula-name">Cisnienie:</div>
+                    <div class="formula-equation">p = F / S</div>
+                    <div class="formula-explain">cisnienie = sila / powierzchnia</div>
+                    <div class="formula-when"><strong>Kiedy uzywac?</strong> Gdy sila naciska na jakas powierzchnie (np. stopa na podloge, gwozd w deske).</div>
+                    <div class="formula-example"><strong>Przyklad:</strong> Czlowiek o wadze 600N stoi na podlodze. Powierzchnia jego butow to 0.03m2. Jakie cisnienie wywiera?<br><span class="formula-solution">p = F/S = 600N / 0.03m2 = <strong>20000 Pa</strong></span></div>
+                    <div class="formula-variants"><strong>Przeksztalcenia:</strong><br>Szukasz sily? <span class="formula-mini">F = p * S</span><br>Szukasz powierzchni? <span class="formula-mini">S = F / p</span></div>
+                </div>
+                <div class="formula-box">
+                    <div class="formula-name">Cisnienie hydrostatyczne:</div>
+                    <div class="formula-equation">p = ro * g * h</div>
+                    <div class="formula-explain">cisnienie = gestosc cieczy * 10 * glebokosc</div>
+                    <div class="formula-when"><strong>Kiedy uzywac?</strong> Gdy pytanie dotyczy cisnienia POD WODA (lub inna ciecza) na jakiejs glebokosci.</div>
+                    <div class="formula-example"><strong>Przyklad:</strong> Nurek jest na glebokosci 5m w wodzie (p=1000 kg/m3). Jakie cisnienie na niego dziala?<br><span class="formula-solution">p = ro*g*h = 1000 * 10 * 5 = <strong>50000 Pa</strong></span></div>
+                    <div class="formula-variants"><strong>Przeksztalcenie:</strong><br>Szukasz glebokosci? <span class="formula-mini">h = p / (ro * g)</span></div>
+                </div>
+                <div class="formula-box">
+                    <div class="formula-name">Sila wyporu (Archimedes):</div>
+                    <div class="formula-equation">Fw = ro * V * g</div>
+                    <div class="formula-explain">sila wyporu = gestosc CIECZY * objetosc ZANURZONA * 10</div>
+                    <div class="formula-when"><strong>Kiedy uzywac?</strong> Gdy przedmiot jest zanurzony w cieczy i chcesz obliczyc sile ktora go wypycha do gory.</div>
+                    <div class="formula-example"><strong>Przyklad:</strong> Kamien o objetosci 0.002m3 zanurzono w wodzie. Jaka sila wyporu na niego dziala?<br><span class="formula-solution">Fw = ro*V*g = 1000 * 0.002 * 10 = <strong>20 N</strong></span></div>
+                    <div class="formula-tip"><strong>UWAGA!</strong> Uzywasz gestosci CIECZY (nie przedmiotu!) i objetosci ZANURZONEJ czesci.</div>
+                </div>
+            </div>
+
+            <div class="formulas-section">
+                <h3>Jak rozpoznac ktory wzor uzyc?</h3>
+                <div class="formula-tip-box">
+                    <div class="tip-item"><span class="tip-keyword">masa, objetosc, z czego zrobione, plynie/tonie</span><span class="tip-arrow">-></span><span class="tip-formula">p = m/V (gestosc)</span></div>
+                    <div class="tip-item"><span class="tip-keyword">nacisk, powierzchnia, ostre/tepe, stopa/but</span><span class="tip-arrow">-></span><span class="tip-formula">p = F/S (cisnienie)</span></div>
+                    <div class="tip-item"><span class="tip-keyword">pod woda, glebokosc, nurek, tama</span><span class="tip-arrow">-></span><span class="tip-formula">p = ro*g*h (hydrostatyczne)</span></div>
+                    <div class="tip-item"><span class="tip-keyword">wypycha, zanurzony, plywanie, lzejszy w wodzie</span><span class="tip-arrow">-></span><span class="tip-formula">Fw = ro*V*g (Archimedes)</span></div>
+                </div>
+            </div>
+
+            <div class="formulas-section">
+                <h3>Jednostki</h3>
+                <div class="formula-item"><span class="formula-letter">1 Pa</span><span class="formula-desc">= 1 N/m^2 (paskal)</span></div>
+                <div class="formula-item"><span class="formula-letter">1 hPa</span><span class="formula-desc">= 100 Pa (hektopaskal)</span></div>
+                <div class="formula-item"><span class="formula-letter">1 kPa</span><span class="formula-desc">= 1000 Pa (kilopaskal)</span></div>
+                <div class="formula-item"><span class="formula-letter">1 m^2</span><span class="formula-desc">= 10 000 cm^2</span></div>
+                <div class="formula-item"><span class="formula-letter">1 m^3</span><span class="formula-desc">= 1 000 000 cm^3 = 1000 litrow</span></div>
+                <div class="formula-item"><span class="formula-letter">1 g/cm^3</span><span class="formula-desc">= 1000 kg/m^3</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle konfiguracji -->
+    <button class="setup-toggle" id="setup-toggle" title="Konfiguracja pytan AI">&#9881;</button>
+
+    <!-- Panel konfiguracji AI -->
+    <div class="setup-panel" id="setup-panel">
+        <div class="setup-panel-header">
+            <h3>Dodaj nowa klase</h3>
+            <button class="setup-panel-close" id="setup-panel-close">&times;</button>
+        </div>
+        <div class="setup-panel-body">
+            <div class="setup-field">
+                <label for="class-name-input">Nazwa przedmiotu / klasy</label>
+                <input type="text" id="class-name-input" placeholder="np. Biologia - Klasa 8">
+            </div>
+            <div class="setup-field">
+                <label for="class-context-input">Zakres materialu (opcjonalnie)</label>
+                <textarea id="class-context-input" placeholder="np. Rozdzial 3: Uklad krwionosny, serce, krew..." rows="3"></textarea>
+            </div>
+            <div class="setup-field">
+                <label>Zdjecie kryteriow sukcesu (opcjonalnie)</label>
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">&#128247;</div>
+                    <div class="upload-text">Kliknij lub przeciagnij zdjecie</div>
+                    <div class="upload-hint">Max 4MB - JPG, PNG</div>
+                </div>
+                <input type="file" id="image-upload" accept="image/jpeg,image/png" style="display: none;">
+            </div>
+            <p class="auth-notice" id="auth-notice">Zaloguj sie kontem Google, aby generowac pytania.</p>
+            <button class="btn-generate" id="generate-btn">Generuj pytania</button>
+            <div class="generate-status" id="generate-status"></div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generowanie pytan...</div>
+        <div class="loading-subtext">To moze potrwac do 30 sekund</div>
+    </div>
+
+    <script type="module" src="src/main.ts"></script>
+</body>
+</html>

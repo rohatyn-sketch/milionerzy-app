@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milionerzy - Gra</title>
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+    <div class="spotlight"></div>
+    <div class="stars"></div>
+
+    <nav class="nav-back">
+        <a href="index.html">&#8592; Powrot do menu</a>
+    </nav>
+
+    <div class="container">
+        <div class="game-container">
+            <!-- Header z timerem i pieniedzmi -->
+            <div class="game-header">
+                <div class="timer-container">
+                    <div class="timer-bar">
+                        <div class="timer-fill" id="timer-fill"></div>
+                    </div>
+                    <span class="timer-text" id="timer-text">60s</span>
+                </div>
+
+                <!-- Wskaznik trudnosci -->
+                <div class="difficulty-indicator" id="difficulty-indicator"></div>
+
+                <!-- Licznik serii -->
+                <div class="streak-counter" id="streak-counter"></div>
+
+                <div class="current-money" id="current-money">0 PLN</div>
+            </div>
+
+            <!-- Pytanie -->
+            <div class="question-container fade-in">
+                <p class="question-number" id="question-number">Pytanie 1/10</p>
+                <p class="question-text" id="question-text">Ladowanie pytania...</p>
+            </div>
+
+            <!-- Odpowiedzi -->
+            <div class="answers-container" id="answers-container">
+                <button class="answer-btn" data-index="0">
+                    <span class="answer-letter">A:</span>
+                    <span class="answer-text"></span>
+                </button>
+                <button class="answer-btn" data-index="1">
+                    <span class="answer-letter">B:</span>
+                    <span class="answer-text"></span>
+                </button>
+                <button class="answer-btn" data-index="2">
+                    <span class="answer-letter">C:</span>
+                    <span class="answer-text"></span>
+                </button>
+                <button class="answer-btn" data-index="3">
+                    <span class="answer-letter">D:</span>
+                    <span class="answer-text"></span>
+                </button>
+            </div>
+
+            <!-- Kola ratunkowe -->
+            <div class="lifelines-container">
+                <button class="lifeline-btn" id="lifeline-fifty" title="Usuwa 2 bledne odpowiedzi">
+                    <span>50:50</span>
+                    <span class="count" id="fifty-count">x0</span>
+                </button>
+                <button class="lifeline-btn" id="lifeline-skip" title="Pomija pytanie">
+                    <span>Pomin</span>
+                    <span class="count" id="skip-count">x0</span>
+                </button>
+                <button class="lifeline-btn" id="lifeline-time" title="+30 sekund">
+                    <span>+Czas</span>
+                    <span class="count" id="time-count">x0</span>
+                </button>
+            </div>
+
+            <!-- Skroty klawiszowe -->
+            <div class="keyboard-hints" id="keyboard-hints">
+                <span class="hint">A/B/C/D lub 1/2/3/4 - wybor</span>
+                <span class="hint">Spacja - dalej</span>
+                <span class="hint">Esc - wyjscie</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay z wyjasnieniem -->
+    <div class="explanation-overlay" id="explanation-overlay">
+        <div class="explanation-box">
+            <p class="explanation-result" id="explanation-result">Poprawna odpowiedz!</p>
+            <p class="explanation-money" id="explanation-money">+200 000 PLN</p>
+
+            <div class="correct-answer-box" id="correct-answer-box">
+                <span class="correct-answer-label">Poprawna odpowiedz:</span>
+                <span class="correct-answer-text" id="correct-answer-text"></span>
+            </div>
+
+            <div class="explanation-content" id="explanation-text">
+                <h3 class="explanation-title">Wyjasnienie:</h3>
+                <div class="explanation-body"></div>
+            </div>
+
+            <button class="btn btn-primary" id="next-btn">Nastepne pytanie</button>
+        </div>
+    </div>
+
+    <!-- Ekran koncowy -->
+    <div class="end-screen" id="end-screen">
+        <div class="end-content">
+            <h1 class="end-title" id="end-title">Koniec gry!</h1>
+            <p class="end-money" id="end-money">Zdobyles: 0 PLN</p>
+            <div class="end-buttons">
+                <a href="game.html" class="btn btn-primary">Zagraj ponownie</a>
+                <a href="index.html" class="btn btn-secondary">Menu glowne</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="src/game-entry.ts"></script>
+</body>
+</html>

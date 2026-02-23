@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milionerzy - Osiagniecia</title>
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+    <div class="spotlight"></div>
+    <div class="stars"></div>
+
+    <nav class="nav-back">
+        <a href="index.html">&#8592; Powrot do menu</a>
+    </nav>
+
+    <div class="container">
+        <div class="achievements-container">
+            <h1 class="achievements-title">Osiagniecia</h1>
+            <p class="achievements-subtitle">Odblokuj wszystkie, aby stac sie prawdziwym mistrzem!</p>
+
+            <div class="achievements-stats">
+                <span>Odblokowane: <strong id="achievements-count">0</strong> / <strong id="achievements-total">13</strong></span>
+            </div>
+
+            <div class="achievements-grid" id="achievements-grid"></div>
+        </div>
+    </div>
+
+    <script type="module" src="src/achievements-entry.ts"></script>
+</body>
+</html>

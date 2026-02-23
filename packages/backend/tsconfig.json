@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "sourceMap": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "../shared" }]
+}

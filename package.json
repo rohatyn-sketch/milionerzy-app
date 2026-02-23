@@ -1,0 +1,19 @@
+{
+  "name": "milionerzy",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "dev:frontend": "pnpm --filter @milionerzy/frontend dev",
+    "dev:backend": "pnpm --filter @milionerzy/backend dev",
+    "build:shared": "pnpm --filter @milionerzy/shared build",
+    "build:backend": "pnpm --filter @milionerzy/backend build",
+    "build:frontend": "pnpm --filter @milionerzy/frontend build",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy": "pnpm build && firebase deploy"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
