@@ -4,10 +4,10 @@ resource "google_identity_platform_config" "default" {
 
   authorized_domains = [
     "localhost",
+    "milionerzy.web.app",
+    "milionerzy.firebaseapp.com",
     "${var.project_id}.firebaseapp.com",
     "${var.project_id}.web.app",
-    "${var.project_id}-hosting.web.app",
-    "${var.project_id}-hosting.firebaseapp.com",
   ]
 
   sign_in {

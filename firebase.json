@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "milionerzy-487910-hosting",
+    "site": "milionerzy",
     "public": "packages/frontend/dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [

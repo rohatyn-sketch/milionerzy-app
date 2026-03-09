@@ -74,6 +74,6 @@ module "cloud_run" {
 module "hosting" {
   source     = "./modules/hosting"
   project_id = var.project_id
-  site_id    = "${var.project_id}-hosting"
+  site_id    = "milionerzy"
   depends_on = [module.firebase]
 }
