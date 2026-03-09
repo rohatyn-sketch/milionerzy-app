@@ -172,9 +172,7 @@ function setupLeaderboardPreview(): void {
 function updateSubtitle(): void {
   const el = document.getElementById('subtitle-text');
   if (!el) return;
-  const activeId = storage.getActiveClass();
-  const cls = storage.getClassById(activeId);
-  el.textContent = cls?.name || 'Edukacja z Fizyka - Klasa 7';
+  el.textContent = 'Wybierz klase i graj!';
 }
 
 function updateFormulasVisibility(): void {

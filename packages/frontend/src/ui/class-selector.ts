@@ -52,6 +52,7 @@ export function renderClassCards(onUpdate?: () => void): void {
   addCard.innerHTML = `
     <div class="class-card-add-icon">+</div>
     <div class="class-card-add-text">Dodaj klase</div>
+    <div class="class-card-tooltip">Zaloguj sie, aby dodac nowa klase</div>
   `;
   addCard.addEventListener('click', () => {
     const panel = document.getElementById('setup-panel');
