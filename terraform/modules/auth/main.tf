@@ -5,7 +5,10 @@ resource "google_identity_platform_config" "default" {
   sign_in {
     allow_duplicate_emails = false
     anonymous { enabled = false }
-    email { enabled = false; password_required = false }
+    email {
+      enabled           = false
+      password_required = false
+    }
   }
 }
 
