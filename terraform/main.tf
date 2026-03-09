@@ -52,7 +52,6 @@ module "functions" {
   source           = "./modules/functions"
   project_id       = var.project_id
   region           = var.region
-  source_bucket    = module.storage.functions_source_bucket
   gemini_secret_id = module.secrets.gemini_secret_id
   depends_on       = [module.firestore, module.secrets]
 }
