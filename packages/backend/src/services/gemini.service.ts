@@ -1,6 +1,7 @@
-export function buildPrompt(className: string, context?: string): string {
+export function buildPrompt(className: string, context?: string, hasImage?: boolean): string {
   return `Jestes ekspertem od tworzenia pytan quizowych. Wygeneruj dokladnie 65 pytan do quizu "Milionerzy" na temat: "${className}".
 ${context ? `\nDodatkowy kontekst: ${context}` : ''}
+${hasImage ? '\nDolaczono zdjecie z kryteriami sukcesu / materialem. Przeanalizuj je dokladnie i wygeneruj pytania scisle oparte na tresci ze zdjecia.' : ''}
 
 Wymagania:
 - 55 pytan wielokrotnego wyboru (4 odpowiedzi, dokladnie 1 poprawna)
@@ -59,7 +60,7 @@ export async function generateWithGemini(
   mimeType?: string
 ): Promise<any[]> {
   const key = process.env.GEMINI_API_KEY || '';
-  const prompt = buildPrompt(className, context);
+  const prompt = buildPrompt(className, context, !!(imageBase64 && mimeType));
 
   const parts: any[] = [{ text: prompt }];
   if (imageBase64 && mimeType) {
@@ -67,7 +68,7 @@ export async function generateWithGemini(
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key=${key}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
