@@ -29,9 +29,11 @@ module "firestore" {
 }
 
 module "auth" {
-  source     = "./modules/auth"
-  project_id = var.project_id
-  depends_on = [module.firebase]
+  source               = "./modules/auth"
+  project_id           = var.project_id
+  google_client_id     = var.google_client_id
+  google_client_secret = var.google_client_secret
+  depends_on           = [module.firebase]
 }
 
 module "secrets" {
