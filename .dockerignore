@@ -1,0 +1,8 @@
+node_modules
+.git
+.github
+terraform
+docs
+*.md
+.env*
+packages/frontend

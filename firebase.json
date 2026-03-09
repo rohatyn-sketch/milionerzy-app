@@ -4,19 +4,10 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "/api/**",
-        "function": "api"
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }
     ]
-  },
-  "functions": {
-    "source": "packages/backend",
-    "runtime": "nodejs20",
-    "predeploy": ["pnpm --filter @milionerzy/shared build", "pnpm --filter @milionerzy/backend build"]
   },
   "firestore": {
     "rules": "firestore.rules",

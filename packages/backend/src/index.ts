@@ -1,4 +1,3 @@
-import { onRequest } from 'firebase-functions/v2/https';
 import express from 'express';
 import { errorHandler } from './middleware/error-handler';
 import authRoutes from './routes/auth';
@@ -23,6 +22,11 @@ app.use((_req, res, next) => {
   next();
 });
 
+// Health check for Cloud Run
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/user/progress', progressRoutes);
 app.use('/api/generate', generateRoutes);
@@ -31,4 +35,7 @@ app.use('/api/leaderboard', leaderboardRoutes);
 
 app.use(errorHandler);
 
-export const api = onRequest({ region: 'europe-central2', memory: '512MiB' }, app);
+const port = parseInt(process.env.PORT || '8080', 10);
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});

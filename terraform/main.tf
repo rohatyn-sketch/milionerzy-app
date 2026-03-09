@@ -16,6 +16,20 @@ provider "google-beta" {
   region  = var.region
 }
 
+# Enable required APIs
+resource "google_project_service" "apis" {
+  for_each = toset([
+    "run.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "iam.googleapis.com",
+  ])
+  project = var.project_id
+  service = each.value
+
+  disable_on_destroy = false
+}
+
 module "firebase" {
   source     = "./modules/firebase"
   project_id = var.project_id
@@ -48,12 +62,13 @@ module "storage" {
   region     = var.region
 }
 
-module "functions" {
-  source           = "./modules/functions"
-  project_id       = var.project_id
-  region           = var.region
-  gemini_secret_id = module.secrets.gemini_secret_id
-  depends_on       = [module.firestore, module.secrets]
+module "cloud_run" {
+  source      = "./modules/functions"
+  project_id  = var.project_id
+  region      = var.region
+  github_org  = var.github_org
+  github_repo = var.github_repo
+  depends_on  = [module.firestore, module.secrets, google_project_service.apis]
 }
 
 module "hosting" {

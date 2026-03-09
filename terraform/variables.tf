@@ -25,3 +25,15 @@ variable "google_client_secret" {
   sensitive   = true
   description = "Google OAuth 2.0 Client Secret"
 }
+
+variable "github_org" {
+  type        = string
+  default     = "rohatyn-sketch"
+  description = "GitHub organization or user"
+}
+
+variable "github_repo" {
+  type        = string
+  default     = "milionerzy-app"
+  description = "GitHub repository name"
+}

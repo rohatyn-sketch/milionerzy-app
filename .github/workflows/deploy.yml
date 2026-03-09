@@ -8,6 +8,13 @@ on:
       - 'docs/**'
       - '*.md'
 
+env:
+  REGION: europe-central2
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  AR_REPO: milionerzy-docker
+  IMAGE_NAME: api
+  CLOUD_RUN_SERVICE: milionerzy-api
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,9 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: google-github-actions/auth@v2
+      - id: auth
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
 
       - uses: pnpm/action-setup@v4
         with:
@@ -42,12 +52,34 @@ jobs:
       - name: Build frontend
         run: pnpm --filter @milionerzy/frontend build
 
-      - name: Deploy functions
-        run: npx firebase-tools deploy --only functions --project ${{ secrets.GCP_PROJECT_ID }}
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}"
+          docker build -f packages/backend/Dockerfile -t "${IMAGE}:latest" -t "${IMAGE}:${{ github.sha }}" .
+          docker push "${IMAGE}:latest"
+          docker push "${IMAGE}:${{ github.sha }}"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.CLOUD_RUN_SERVICE }} \
+            --image "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --service-account "milionerzy-cloud-run@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
+            --set-secrets "GEMINI_API_KEY=gemini-api-key:latest" \
+            --set-env-vars "NODE_ENV=production,GOOGLE_CLOUD_PROJECT=${{ env.PROJECT_ID }}" \
+            --memory 512Mi \
+            --cpu 1 \
+            --max-instances 10 \
+            --min-instances 0 \
+            --port 8080 \
+            --allow-unauthenticated \
+            --quiet
 
       - name: Deploy hosting
-        run: npx firebase-tools deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }}
+        run: npx firebase-tools deploy --only hosting --project ${{ env.PROJECT_ID }}
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
