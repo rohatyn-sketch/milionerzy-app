@@ -141,18 +141,10 @@ export function updateUI(): void {
     authNotice.style.display = isLoggedIn() ? 'none' : 'block';
   }
 
-  // Show/hide "add class" card based on auth
+  // Show/hide "add class" card tooltip based on auth (always clickable)
   const addCards = document.querySelectorAll('.class-card-add') as NodeListOf<HTMLElement>;
   addCards.forEach((card) => {
     const tooltip = card.querySelector('.class-card-tooltip') as HTMLElement | null;
-    if (!isLoggedIn()) {
-      card.style.opacity = '0.5';
-      card.style.pointerEvents = 'none';
-      if (tooltip) tooltip.style.display = 'block';
-    } else {
-      card.style.opacity = '';
-      card.style.pointerEvents = '';
-      if (tooltip) tooltip.style.display = 'none';
-    }
+    if (tooltip) tooltip.style.display = isLoggedIn() ? 'none' : 'block';
   });
 }

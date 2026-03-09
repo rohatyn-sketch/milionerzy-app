@@ -13,6 +13,7 @@ import { loadCachedQuestions, loadQuestionsForClass } from './features/questions
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  storage.init();
   initAuth();
   initSound();
   loadCachedQuestions();

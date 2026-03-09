@@ -22,8 +22,9 @@ export function setupSetupPanel(): void {
 
   closeBtn?.addEventListener('click', () => panel.classList.remove('active'));
 
-  document.addEventListener('click', (e) => {
-    if (panel.classList.contains('active') && !panel.contains(e.target as Node) && e.target !== toggleBtn) {
+  // Close when clicking the backdrop (outside inner panel)
+  panel.addEventListener('click', (e) => {
+    if (e.target === panel) {
       panel.classList.remove('active');
     }
   });
