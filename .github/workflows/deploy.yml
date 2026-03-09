@@ -49,8 +49,18 @@ jobs:
       - name: Build backend
         run: pnpm --filter @milionerzy/backend build
 
+      - name: Get Cloud Run URL
+        id: cloud_run
+        run: |
+          URL=$(gcloud run services describe ${{ env.CLOUD_RUN_SERVICE }} \
+            --region ${{ env.REGION }} --project ${{ env.PROJECT_ID }} \
+            --format="value(status.url)" 2>/dev/null || echo "")
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+
       - name: Build frontend
         run: pnpm --filter @milionerzy/frontend build
+        env:
+          VITE_API_BASE_URL: ${{ steps.cloud_run.outputs.url }}/api
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
