@@ -505,9 +505,17 @@ export function initGame(): void {
   if (backBtn) {
     backBtn.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       confirmExit();
     });
   }
+
+  // Also intercept browser back/refresh during active game
+  window.addEventListener('beforeunload', (e) => {
+    if (!els.endScreen?.classList.contains('active')) {
+      e.preventDefault();
+    }
+  });
 
   initStreak();
   startGame();
