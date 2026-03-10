@@ -5,7 +5,7 @@ import { storage } from './state/storage';
 import { applyTheme } from './ui/theme';
 import { renderClassCards } from './ui/class-selector';
 import { setupSetupPanel, setupImageUpload, setupGenerateButton } from './ui/setup-panel';
-import { initAuth } from './auth/auth';
+import { initAuth, isLoggedIn } from './auth/auth';
 import { initSound, isSfxEnabled, isMusicEnabled, toggleSfx, toggleMusic } from './features/sound';
 import { getStatus as getDailyStatus, startCountdown as startDailyCountdown } from './features/daily';
 import { renderPreview as renderLeaderboardPreview } from './features/leaderboard';
@@ -59,10 +59,18 @@ function updateStatsDisplay(): void {
 }
 
 function updatePracticeButton(): void {
-  const btn = document.getElementById('practice-btn');
+  const btn = document.getElementById('practice-btn') as HTMLAnchorElement | null;
   const count = document.getElementById('practice-count');
   if (!btn || !count) return;
 
+  if (!isLoggedIn()) {
+    count.textContent = '(0)';
+    btn.classList.add('disabled');
+    btn.title = 'Zaloguj sie, aby korzystac z trybu cwiczen';
+    return;
+  }
+
+  btn.title = '';
   const incorrectCount = storage.getIncorrectCount();
   if (incorrectCount > 0) {
     count.textContent = `(${incorrectCount})`;

@@ -57,6 +57,9 @@ export async function logOut(): Promise<void> {
     autoSaveInterval = null;
   }
 
+  // Revert to default class on logout
+  storage.setActiveClass('default_fizyka7');
+
   updateUI();
   console.log('[Auth] Wylogowano');
 }
@@ -99,7 +102,7 @@ export function initAuth(): void {
   });
 }
 
-export function updateUI(): void {
+export async function updateUI(): Promise<void> {
   const loginArea = document.getElementById('auth-area');
   if (!loginArea) return;
 
@@ -141,10 +144,7 @@ export function updateUI(): void {
     authNotice.style.display = isLoggedIn() ? 'none' : 'block';
   }
 
-  // Show/hide "add class" card tooltip based on auth (always clickable)
-  const addCards = document.querySelectorAll('.class-card-add') as NodeListOf<HTMLElement>;
-  addCards.forEach((card) => {
-    const tooltip = card.querySelector('.class-card-tooltip') as HTMLElement | null;
-    if (tooltip) tooltip.style.display = isLoggedIn() ? 'none' : 'block';
-  });
+  // Re-render class cards when auth state changes
+  const { renderClassCards } = await import('../ui/class-selector');
+  renderClassCards();
 }

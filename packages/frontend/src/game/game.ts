@@ -12,6 +12,7 @@ import { playCorrect, playIncorrect, playTimerWarning, playClick, playStreak, in
 import { checkAll as checkAllAchievements, check as checkAchievement } from '../features/achievements';
 import { addScore as addLeaderboardScore } from '../features/leaderboard';
 import { loadCachedQuestions, getRandomQuestions, shuffleAnswers, getQuestions } from '../features/questions';
+import { isLoggedIn } from '../auth/auth';
 
 // State
 let questions: Question[] = [];
@@ -446,6 +447,17 @@ function useExtraTime(): void {
   playClick();
 }
 
+function confirmExit(): void {
+  if (els.endScreen?.classList.contains('active')) {
+    // Game is already over, just go back
+    window.location.href = 'index.html';
+    return;
+  }
+  if (confirm('Czy na pewno chcesz wyjsc? Postep nie zostanie zapisany.')) {
+    window.location.href = 'index.html';
+  }
+}
+
 export function initGame(): void {
   cacheElements();
   initSound();
@@ -485,10 +497,17 @@ export function initGame(): void {
   });
 
   setEscapeCallback(() => {
-    if (confirm('Czy na pewno chcesz wyjsc? Postep zostanie utracony.')) {
-      window.location.href = 'index.html';
-    }
+    confirmExit();
   });
+
+  // Back to menu button with confirmation
+  const backBtn = document.getElementById('back-to-menu');
+  if (backBtn) {
+    backBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      confirmExit();
+    });
+  }
 
   initStreak();
   startGame();
@@ -512,6 +531,12 @@ function startGame(): void {
     }
     questions = getDailyQuestions(getQuestions()).map(q => shuffleAnswers(q));
   } else if (isPracticeMode) {
+    if (!isLoggedIn()) {
+      alert('Zaloguj sie, aby korzystac z trybu cwiczen.');
+      window.location.href = 'index.html';
+      return;
+    }
+
     const incorrectIds = storage.getIncorrectQuestions();
     const allQ = getQuestions();
     const incorrectQuestions = allQ.filter(q => q.id && incorrectIds.includes(q.id));
