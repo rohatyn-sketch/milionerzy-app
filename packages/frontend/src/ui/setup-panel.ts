@@ -135,15 +135,16 @@ export function setupGenerateButton(onGenerated?: () => void): void {
     if (statusEl) { statusEl.textContent = ''; statusEl.className = 'generate-status'; }
 
     try {
+      const newId = 'class_' + Date.now();
       const data = await generateQuestions({
         className,
         context: context || undefined,
         imageBase64: uploadedImageBase64 || undefined,
         mimeType: uploadedImageMimeType || undefined,
+        classId: newId,
       });
 
       const questions = data.questions;
-      const newId = 'class_' + Date.now();
 
       storage.setClassQuestions(newId, questions);
       storage.addClass({

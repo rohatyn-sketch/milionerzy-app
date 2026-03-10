@@ -264,6 +264,16 @@ export const storage = {
 
   // Progress sync helpers
   collectProgressData(): SaveProgressRequest {
+    // Collect per-class incorrect questions
+    const incorrectQuestions: Record<string, (number | string)[]> = {};
+    const registry = this.getClassesRegistry() || [];
+    registry.forEach(cls => {
+      const incorrect = this.getClassIncorrect(cls.id);
+      if (incorrect.length > 0) {
+        incorrectQuestions[cls.id] = incorrect;
+      }
+    });
+
     return {
       progress: {
         money: this.getMoney() || 0,
@@ -289,7 +299,7 @@ export const storage = {
       lifelines: this.getLifelines() || { fifty: 0, skip: 0, time: 0 },
       achievements: this.getAchievements() || [],
       activeClassId: this.getActiveClass(),
-      incorrectQuestions: {},
+      incorrectQuestions,
       classes: (this.getClassesRegistry() || []).filter(c => !c.isDefault),
     };
   },
@@ -321,6 +331,36 @@ export const storage = {
     if (data.lifelines) this.setLifelines(data.lifelines);
     if (data.achievements) this.setAchievements(data.achievements);
     if (data.activeClassId) this.setActiveClass(data.activeClassId);
+
+    // Restore user classes and their questions from server
+    if (data.classes && data.classes.length > 0) {
+      const defaultClasses = (this.getClassesRegistry() || []).filter(c => c.isDefault);
+      const serverClasses = data.classes.map((cls: any) => ({
+        id: cls.id,
+        name: cls.name,
+        isDefault: cls.isDefault || false,
+        questionCount: cls.questionCount || 0,
+        context: cls.context,
+        generatedAt: cls.generatedAt,
+      }));
+      this.setClassesRegistry([...defaultClasses, ...serverClasses]);
+
+      // Restore questions for each class
+      data.classes.forEach((cls: any) => {
+        if (cls.questions && cls.questions.length > 0) {
+          this.setClassQuestions(cls.id, cls.questions);
+        }
+      });
+    }
+
+    // Restore per-class incorrect questions from server
+    if (data.incorrectQuestions) {
+      Object.entries(data.incorrectQuestions).forEach(([classId, questionIds]) => {
+        if (Array.isArray(questionIds)) {
+          this.setClassIncorrect(classId, questionIds as (number | string)[]);
+        }
+      });
+    }
   },
 
   resetAll() {
