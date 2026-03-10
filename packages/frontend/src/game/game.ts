@@ -1,5 +1,5 @@
 import { storage } from '../state/storage';
-import { scheduleSave } from '../state/sync';
+import { scheduleSave, immediateSave } from '../state/sync';
 import { GAME_CONFIG, formatMoney } from '@milionerzy/shared';
 import type { Question } from '@milionerzy/shared';
 import { isTrueFalse } from '@milionerzy/shared';
@@ -218,6 +218,7 @@ function handleTimeOut(): void {
   currentMoney = Math.max(-gameStartMoney, currentMoney + GAME_CONFIG.moneyPerWrong);
   storage.setMoney(gameStartMoney + currentMoney);
   if (question.id) storage.addIncorrectQuestion(question.id);
+  scheduleSave();
   playIncorrect();
   showExplanation(false, question.explanation || '', 'Czas minal!');
 }
@@ -281,6 +282,7 @@ function handleAnswer(selectedIndex: number): void {
       currentMoney = Math.max(-gameStartMoney, currentMoney + GAME_CONFIG.moneyPerWrong);
       storage.setMoney(gameStartMoney + currentMoney);
       if (question.id) storage.addIncorrectQuestion(question.id);
+      scheduleSave();
       playIncorrect();
       showFloatingMoney(GAME_CONFIG.moneyPerWrong, false);
       showExplanation(false, question.explanation || '');
@@ -449,11 +451,11 @@ function useExtraTime(): void {
 
 function confirmExit(): void {
   if (els.endScreen?.classList.contains('active')) {
-    // Game is already over, just go back
     window.location.href = 'index.html';
     return;
   }
-  if (confirm('Czy na pewno chcesz wyjsc? Postep nie zostanie zapisany.')) {
+  if (confirm('Czy na pewno chcesz wyjsc?')) {
+    immediateSave();
     window.location.href = 'index.html';
   }
 }

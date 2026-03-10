@@ -7,3 +7,10 @@ export function scheduleSave(): void {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => syncProgress(), 3000);
 }
+
+export function immediateSave(): void {
+  if (!isLoggedIn()) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = null;
+  syncProgress();
+}
