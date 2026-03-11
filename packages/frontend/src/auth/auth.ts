@@ -90,15 +90,18 @@ export async function restoreProgress(): Promise<void> {
 }
 
 export function initAuth(): void {
-  onAuthStateChanged(firebaseAuth, (user) => {
+  onAuthStateChanged(firebaseAuth, async (user) => {
     currentUser = user;
-    updateUI();
 
     if (user) {
+      // Restore progress from server on session restore
+      await restoreProgress();
       // Auto-save every 60s
       if (autoSaveInterval) clearInterval(autoSaveInterval);
       autoSaveInterval = setInterval(() => syncProgress(), 60000);
     }
+
+    updateUI();
   });
 }
 
@@ -147,4 +150,25 @@ export async function updateUI(): Promise<void> {
   // Re-render class cards when auth state changes
   const { renderClassCards } = await import('../ui/class-selector');
   renderClassCards();
+
+  // Update practice button (it depends on auth state)
+  const practiceBtn = document.getElementById('practice-btn') as HTMLAnchorElement | null;
+  const practiceCount = document.getElementById('practice-count');
+  if (practiceBtn && practiceCount) {
+    if (!isLoggedIn()) {
+      practiceCount.textContent = '(0)';
+      practiceBtn.classList.add('disabled');
+      practiceBtn.title = 'Zaloguj sie, aby korzystac z trybu cwiczen';
+    } else {
+      practiceBtn.title = '';
+      const count = storage.getIncorrectCount();
+      if (count > 0) {
+        practiceCount.textContent = `(${count})`;
+        practiceBtn.classList.remove('disabled');
+      } else {
+        practiceCount.textContent = '(0)';
+        practiceBtn.classList.add('disabled');
+      }
+    }
+  }
 }
