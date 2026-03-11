@@ -15,6 +15,10 @@ const googleProvider = new GoogleAuthProvider();
 
 let currentUser: User | null = null;
 let autoSaveInterval: ReturnType<typeof setInterval> | null = null;
+let authReadyResolve: (() => void) | null = null;
+const authReadyPromise = new Promise<void>((resolve) => {
+  authReadyResolve = resolve;
+});
 
 export function getCurrentUser(): User | null {
   return currentUser;
@@ -89,16 +93,27 @@ export async function restoreProgress(): Promise<void> {
   }
 }
 
-export function initAuth(): void {
+export function waitForAuth(): Promise<void> {
+  return authReadyPromise;
+}
+
+export function initAuth(options?: { skipRestore?: boolean }): void {
   onAuthStateChanged(firebaseAuth, async (user) => {
     currentUser = user;
 
     if (user) {
-      // Restore progress from server on session restore
-      await restoreProgress();
+      // Restore progress from server on session restore (skip on game page)
+      if (!options?.skipRestore) {
+        await restoreProgress();
+      }
       // Auto-save every 60s
       if (autoSaveInterval) clearInterval(autoSaveInterval);
       autoSaveInterval = setInterval(() => syncProgress(), 60000);
+    }
+
+    if (authReadyResolve) {
+      authReadyResolve();
+      authReadyResolve = null;
     }
 
     updateUI();
