@@ -15,10 +15,6 @@ const googleProvider = new GoogleAuthProvider();
 
 let currentUser: User | null = null;
 let autoSaveInterval: ReturnType<typeof setInterval> | null = null;
-let authReadyResolve: (() => void) | null = null;
-const authReadyPromise = new Promise<void>((resolve) => {
-  authReadyResolve = resolve;
-});
 
 export function getCurrentUser(): User | null {
   return currentUser;
@@ -93,8 +89,9 @@ export async function restoreProgress(): Promise<void> {
   }
 }
 
-export function waitForAuth(): Promise<void> {
-  return authReadyPromise;
+export async function waitForAuth(): Promise<void> {
+  await firebaseAuth.authStateReady();
+  currentUser = firebaseAuth.currentUser;
 }
 
 export function initAuth(options?: { skipRestore?: boolean }): void {
@@ -109,11 +106,6 @@ export function initAuth(options?: { skipRestore?: boolean }): void {
       // Auto-save every 60s
       if (autoSaveInterval) clearInterval(autoSaveInterval);
       autoSaveInterval = setInterval(() => syncProgress(), 60000);
-    }
-
-    if (authReadyResolve) {
-      authReadyResolve();
-      authReadyResolve = null;
     }
 
     updateUI();
