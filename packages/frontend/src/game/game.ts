@@ -161,11 +161,10 @@ function showFloatingMoney(amount: number, positive: boolean): void {
 function showExplanation(correct: boolean, explanation: string, customTitle: string | null = null, reward: number | null = null): void {
   const question = questions[currentQuestionIndex];
   let correctAnswerText: string;
-  if (isTrueFalse(question)) {
-    correctAnswerText = question.correctAnswer ? 'Prawda' : 'Falsz';
-  } else {
-    correctAnswerText = question.answers.find(a => a.correct)!.text;
-  }
+  const correctAns = question.answers.find(a => a.correct)!;
+  correctAnswerText = isTrueFalse(question)
+    ? (correctAns.text === 'Prawda' ? 'Prawda' : 'Falsz')
+    : correctAns.text;
 
   const moneyChange = correct ? (reward || GAME_CONFIG.moneyPerCorrect) : GAME_CONFIG.moneyPerWrong;
 
@@ -207,12 +206,7 @@ function handleTimeOut(): void {
   incorrectAnswersThisGame++;
 
   const question = questions[currentQuestionIndex];
-  let correctIndex: number;
-  if (isTrueFalse(question)) {
-    correctIndex = question.correctAnswer ? 0 : 1;
-  } else {
-    correctIndex = question.answers.findIndex(a => a.correct);
-  }
+  const correctIndex = question.answers.findIndex(a => a.correct);
   getAnswerBtns()[correctIndex]?.classList.add('correct');
 
   currentMoney = Math.max(-gameStartMoney, currentMoney + GAME_CONFIG.moneyPerWrong);
@@ -233,16 +227,8 @@ function handleAnswer(selectedIndex: number): void {
   const questionNum = currentQuestionIndex + 1;
   const answerTime = (Date.now() - (questionStartTime || Date.now())) / 1000;
 
-  let isCorrect: boolean;
-  let correctIndex: number;
-  if (isTrueFalse(question)) {
-    const userTrue = selectedIndex === 0;
-    isCorrect = userTrue === question.correctAnswer;
-    correctIndex = question.correctAnswer ? 0 : 1;
-  } else {
-    isCorrect = question.answers[selectedIndex].correct;
-    correctIndex = question.answers.findIndex(a => a.correct);
-  }
+  const isCorrect = question.answers[selectedIndex].correct;
+  const correctIndex = question.answers.findIndex(a => a.correct);
 
   btns.forEach(b => b.disabled = true);
   btns[selectedIndex]?.classList.add('selected');
