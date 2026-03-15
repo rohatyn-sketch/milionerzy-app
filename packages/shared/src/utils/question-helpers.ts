@@ -1,6 +1,10 @@
 import type { Question } from '../types/question';
 
 export function shuffleAnswers(question: Question): Question {
+  // Don't shuffle true/false questions - the UI renders Prawda/Falsz in fixed positions
+  if (question.type === 'true-false' || question.answers.length === 2) {
+    return question;
+  }
   const answers = [...question.answers];
   for (let i = answers.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
