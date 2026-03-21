@@ -5,6 +5,7 @@ import progressRoutes from './routes/progress';
 import generateRoutes from './routes/generate';
 import criteriaRoutes from './routes/criteria';
 import leaderboardRoutes from './routes/leaderboard';
+import podcastRoutes from './routes/podcast';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/user/progress', progressRoutes);
 app.use('/api/generate', generateRoutes);
 app.use('/api/criteria', criteriaRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/podcast', podcastRoutes);
 
 app.use(errorHandler);
 

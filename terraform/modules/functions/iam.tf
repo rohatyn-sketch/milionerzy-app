@@ -11,6 +11,18 @@ resource "google_project_iam_member" "cloud_run_secret_accessor" {
   member  = "serviceAccount:${google_service_account.cloud_run.email}"
 }
 
+resource "google_project_iam_member" "cloud_run_tts" {
+  project = var.project_id
+  role    = "roles/texttospeech.user"
+  member  = "serviceAccount:${google_service_account.cloud_run.email}"
+}
+
+resource "google_project_iam_member" "cloud_run_storage" {
+  project = var.project_id
+  role    = "roles/storage.objectAdmin"
+  member  = "serviceAccount:${google_service_account.cloud_run.email}"
+}
+
 # GitHub Actions service account permissions
 resource "google_project_iam_member" "github_actions_ar_writer" {
   project = var.project_id

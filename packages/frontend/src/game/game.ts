@@ -13,6 +13,7 @@ import { checkAll as checkAllAchievements, check as checkAchievement } from '../
 import { addScore as addLeaderboardScore } from '../features/leaderboard';
 import { loadCachedQuestions, getRandomQuestions, shuffleAnswers, getQuestions } from '../features/questions';
 import { isLoggedIn } from '../auth/auth';
+import { showLearnMorePopup } from './learn-more-popup';
 
 // State
 let questions: Question[] = [];
@@ -158,7 +159,7 @@ function showFloatingMoney(amount: number, positive: boolean): void {
   setTimeout(() => el.remove(), 2000);
 }
 
-function showExplanation(correct: boolean, explanation: string, customTitle: string | null = null, reward: number | null = null): void {
+function showExplanation(correct: boolean, explanation: string, customTitle: string | null = null, reward: number | null = null, wrongCount: number = 0): void {
   const question = questions[currentQuestionIndex];
   let correctAnswerText: string;
   const correctAns = question.answers.find(a => a.correct)!;
@@ -197,6 +198,12 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
   }
 
   els.explanationOverlay?.classList.add('active');
+
+  // In practice mode, show learn-more popup if user got this question wrong 2+ times
+  if (isPracticeMode && !correct && wrongCount >= 2) {
+    const question = questions[currentQuestionIndex];
+    showLearnMorePopup(question, wrongCount);
+  }
 }
 
 function handleTimeOut(): void {
@@ -211,10 +218,13 @@ function handleTimeOut(): void {
 
   currentMoney = Math.max(-gameStartMoney, currentMoney + GAME_CONFIG.moneyPerWrong);
   storage.setMoney(gameStartMoney + currentMoney);
-  if (question.id) storage.addIncorrectQuestion(question.id);
+  let wrongCount = 0;
+  if (question.id) {
+    wrongCount = storage.incrementIncorrectQuestion(question.id);
+  }
   scheduleSave();
   playIncorrect();
-  showExplanation(false, question.explanation || '', 'Czas minal!');
+  showExplanation(false, question.explanation || '', 'Czas minal!', null, wrongCount);
 }
 
 function handleAnswer(selectedIndex: number): void {
@@ -267,11 +277,14 @@ function handleAnswer(selectedIndex: number): void {
 
       currentMoney = Math.max(-gameStartMoney, currentMoney + GAME_CONFIG.moneyPerWrong);
       storage.setMoney(gameStartMoney + currentMoney);
-      if (question.id) storage.addIncorrectQuestion(question.id);
+      let wrongCount = 0;
+      if (question.id) {
+        wrongCount = storage.incrementIncorrectQuestion(question.id);
+      }
       scheduleSave();
       playIncorrect();
       showFloatingMoney(GAME_CONFIG.moneyPerWrong, false);
-      showExplanation(false, question.explanation || '');
+      showExplanation(false, question.explanation || '', null, null, wrongCount);
     }
 
     checkAllAchievements();

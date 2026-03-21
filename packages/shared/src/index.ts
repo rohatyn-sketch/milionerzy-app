@@ -9,7 +9,8 @@ export type { Achievement, AchievementProgress } from './types/achievement';
 export type { LeaderboardEntry } from './types/leaderboard';
 export type {
   LoginRequest, LoginResponse, ProgressResponse, LoadProgressResponse, SaveProgressRequest,
-  GenerateRequest, GenerateResponse, CriteriaResponse, LeaderboardResponse, SubmitScoreRequest
+  GenerateRequest, GenerateResponse, CriteriaResponse, LeaderboardResponse, SubmitScoreRequest,
+  IncorrectQuestionsMap,
 } from './types/api';
 
 // Constants

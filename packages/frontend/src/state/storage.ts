@@ -6,6 +6,7 @@ import type {
   Question,
   SaveProgressRequest,
   LoadProgressResponse,
+  IncorrectQuestionsMap,
 } from '@milionerzy/shared';
 import { formatMoney as sharedFormatMoney } from '@milionerzy/shared';
 
@@ -221,20 +222,57 @@ export const storage = {
     localStorage.removeItem('milionerzy_questions_' + classId);
   },
 
+  // Incorrect questions stored as Record<string, number> (questionId → wrongCount)
+  // Migrates from old array format on read
+  getClassIncorrectMap(classId: string): IncorrectQuestionsMap {
+    const raw = getJSON<IncorrectQuestionsMap | (number | string)[]>('milionerzy_incorrect_' + classId);
+    if (!raw) return {};
+    // Migrate old array format to map with count=1
+    if (Array.isArray(raw)) {
+      const map: IncorrectQuestionsMap = {};
+      raw.forEach(id => { map[String(id)] = 1; });
+      this.setClassIncorrectMap(classId, map);
+      return map;
+    }
+    return raw;
+  },
+  setClassIncorrectMap(classId: string, map: IncorrectQuestionsMap) {
+    setJSON('milionerzy_incorrect_' + classId, map);
+  },
+
+  // Backward-compatible: returns list of incorrect question IDs
   getClassIncorrect(classId: string): (number | string)[] {
-    return getJSON<(number | string)[]>('milionerzy_incorrect_' + classId) || [];
+    return Object.keys(this.getClassIncorrectMap(classId)).map(id => isNaN(Number(id)) ? id : Number(id));
   },
   setClassIncorrect(classId: string, arr: (number | string)[]) {
-    setJSON('milionerzy_incorrect_' + classId, arr);
+    const map: IncorrectQuestionsMap = {};
+    arr.forEach(id => { map[String(id)] = 1; });
+    this.setClassIncorrectMap(classId, map);
   },
   addClassIncorrect(classId: string, qId: number | string) {
-    const arr = this.getClassIncorrect(classId);
-    if (!arr.includes(qId)) { arr.push(qId); this.setClassIncorrect(classId, arr); }
+    const map = this.getClassIncorrectMap(classId);
+    const key = String(qId);
+    if (!(key in map)) { map[key] = 1; this.setClassIncorrectMap(classId, map); }
   },
   removeClassIncorrect(classId: string, qId: number | string) {
-    const arr = this.getClassIncorrect(classId);
-    const i = arr.indexOf(qId);
-    if (i > -1) { arr.splice(i, 1); this.setClassIncorrect(classId, arr); }
+    const map = this.getClassIncorrectMap(classId);
+    const key = String(qId);
+    if (key in map) { delete map[key]; this.setClassIncorrectMap(classId, map); }
+  },
+
+  // New: increment wrong count and return the new count
+  incrementClassIncorrect(classId: string, qId: number | string): number {
+    const map = this.getClassIncorrectMap(classId);
+    const key = String(qId);
+    map[key] = (map[key] || 0) + 1;
+    this.setClassIncorrectMap(classId, map);
+    return map[key];
+  },
+
+  // Get wrong count for a specific question
+  getClassWrongCount(classId: string, qId: number | string): number {
+    const map = this.getClassIncorrectMap(classId);
+    return map[String(qId)] || 0;
   },
 
   // Wrappers delegating to active class
@@ -242,6 +280,9 @@ export const storage = {
   addIncorrectQuestion(qId: number | string) { this.addClassIncorrect(this.getActiveClass(), qId); },
   removeIncorrectQuestion(qId: number | string) { this.removeClassIncorrect(this.getActiveClass(), qId); },
   getIncorrectCount(): number { return this.getClassIncorrect(this.getActiveClass()).length; },
+  incrementIncorrectQuestion(qId: number | string): number { return this.incrementClassIncorrect(this.getActiveClass(), qId); },
+  getWrongCount(qId: number | string): number { return this.getClassWrongCount(this.getActiveClass(), qId); },
+  getIncorrectQuestionsMap(): IncorrectQuestionsMap { return this.getClassIncorrectMap(this.getActiveClass()); },
 
   // Class management
   addClass(cls: QuizClass) {
@@ -264,13 +305,13 @@ export const storage = {
 
   // Progress sync helpers
   collectProgressData(): SaveProgressRequest {
-    // Collect per-class incorrect questions
-    const incorrectQuestions: Record<string, (number | string)[]> = {};
+    // Collect per-class incorrect questions as maps (questionId → wrongCount)
+    const incorrectQuestions: Record<string, IncorrectQuestionsMap> = {};
     const registry = this.getClassesRegistry() || [];
     registry.forEach(cls => {
-      const incorrect = this.getClassIncorrect(cls.id);
-      if (incorrect.length > 0) {
-        incorrectQuestions[cls.id] = incorrect;
+      const map = this.getClassIncorrectMap(cls.id);
+      if (Object.keys(map).length > 0) {
+        incorrectQuestions[cls.id] = map;
       }
     });
 
@@ -353,11 +394,17 @@ export const storage = {
       });
     }
 
-    // Restore per-class incorrect questions from server
+    // Restore per-class incorrect questions from server (handles both old array and new map format)
     if (data.incorrectQuestions) {
-      Object.entries(data.incorrectQuestions).forEach(([classId, questionIds]) => {
-        if (Array.isArray(questionIds)) {
-          this.setClassIncorrect(classId, questionIds as (number | string)[]);
+      Object.entries(data.incorrectQuestions).forEach(([classId, value]) => {
+        if (Array.isArray(value)) {
+          // Old format: convert array to map with count=1
+          const map: IncorrectQuestionsMap = {};
+          (value as (number | string)[]).forEach(id => { map[String(id)] = 1; });
+          this.setClassIncorrectMap(classId, map);
+        } else if (value && typeof value === 'object') {
+          // New format: map of questionId → wrongCount
+          this.setClassIncorrectMap(classId, value as IncorrectQuestionsMap);
         }
       });
     }
