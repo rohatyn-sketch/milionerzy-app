@@ -2,6 +2,8 @@ import { db } from '../config';
 import { getStorage } from 'firebase-admin/storage';
 import { COLLECTIONS } from '../firestore/collections';
 
+const PODCAST_BUCKET = process.env.PODCAST_BUCKET || 'milionerzy-487910-podcasts';
+
 interface PodcastRequest {
   questionText: string;
   category: string;
@@ -212,7 +214,7 @@ async function uploadAndSave(
   questionText: string,
   category: string,
 ): Promise<string> {
-  const bucket = getStorage().bucket();
+  const bucket = getStorage().bucket(PODCAST_BUCKET);
   const filePath = `users/${uid}/podcasts/${podcastId}.mp3`;
   const file = bucket.file(filePath);
 
