@@ -1,10 +1,12 @@
 import type { Question } from '@milionerzy/shared';
 import { generatePodcast } from '../api/podcast.api';
-import { showAudioPlayer, hideAudioPlayer } from './audio-player';
+import { showAudioPlayer } from './audio-player';
 
-let popupEl: HTMLElement | null = null;
+let toastEl: HTMLElement | null = null;
 let isGenerating = false;
 let abortController: AbortController | null = null;
+let dismissedForSession = false;
+let autoHideTimer: ReturnType<typeof setTimeout> | null = null;
 
 const LOADING_MESSAGES = [
   'Szukam zrodel na ten temat...',
@@ -14,35 +16,43 @@ const LOADING_MESSAGES = [
   'Juz prawie gotowe...',
 ];
 
-function createPopupHTML(question: Question, wrongCount: number): string {
-  const emoji = wrongCount >= 3 ? '🤔' : '💡';
+const ROBOT_FRAMES = [
+  '(o_o)',
+  '(O_o)',
+  '(o_O)',
+  '(O_O)',
+  '(^_^)',
+  '(>_<)',
+  '(@_@)',
+  '(^_~)',
+];
+
+function createToastHTML(question: Question, wrongCount: number): string {
   const message = wrongCount >= 3
-    ? 'Ten temat ciagle sprawia Ci trudnosci! Czas na pomoc specjalna.'
-    : 'Ten temat pojawia sie nie pierwszy raz. Moze warto go doglebniej poznac?';
+    ? 'Ten temat Ci nie odpuszcza!'
+    : 'Znow ten temat?';
 
   return `
-    <div class="learn-more-popup" id="learn-more-popup">
-      <div class="learn-more-box">
-        <div class="learn-more-header">
-          <span class="learn-more-emoji">${emoji}</span>
-          <h2 class="learn-more-title">Chcesz lepiej to zrozumiec?</h2>
+    <div class="learn-toast" id="learn-toast">
+      <div class="learn-toast-content">
+        <div class="learn-toast-icon">🎧</div>
+        <div class="learn-toast-text">
+          <p class="learn-toast-message"><strong>${message}</strong> Wygenerowac podcast o <em>${question.category || 'tym temacie'}</em>?</p>
         </div>
-        <p class="learn-more-message">${message}</p>
-        <p class="learn-more-topic">Temat: <strong>${question.category || 'Ogolny'}</strong></p>
-        <p class="learn-more-desc">Stworzymy dla Ciebie krotki podcast edukacyjny, ktory wyjasni ten temat w przystepny sposob!</p>
-        <div class="learn-more-buttons">
-          <button class="btn btn-primary learn-more-generate" id="learn-more-generate">
-            Generuj podcast
-          </button>
-          <button class="btn btn-secondary learn-more-dismiss" id="learn-more-dismiss">
-            Moze pozniej
-          </button>
+        <div class="learn-toast-actions">
+          <button class="learn-toast-btn learn-toast-yes" id="learn-toast-yes" title="Generuj podcast">Tak!</button>
+          <button class="learn-toast-btn learn-toast-no" id="learn-toast-no" title="Nie teraz">Nie</button>
+          <button class="learn-toast-btn learn-toast-stop" id="learn-toast-stop" title="Nie pokazuj wiecej w tej sesji">Nie pytaj</button>
         </div>
-        <div class="learn-more-loading" id="learn-more-loading" style="display: none;">
-          <div class="learn-more-spinner"></div>
-          <p class="learn-more-loading-text" id="learn-more-loading-text">${LOADING_MESSAGES[0]}</p>
-          <button class="btn btn-secondary learn-more-cancel" id="learn-more-cancel">Anuluj</button>
+        <button class="learn-toast-close" id="learn-toast-close" title="Zamknij">&times;</button>
+      </div>
+      <div class="learn-toast-loading" id="learn-toast-loading" style="display: none;">
+        <div class="learn-toast-robot" id="learn-toast-robot">(o_o)</div>
+        <div class="learn-toast-loading-info">
+          <p class="learn-toast-loading-text" id="learn-toast-loading-text">${LOADING_MESSAGES[0]}</p>
+          <div class="learn-toast-progress"><div class="learn-toast-progress-bar" id="learn-toast-progress-bar"></div></div>
         </div>
+        <button class="learn-toast-btn learn-toast-cancel" id="learn-toast-cancel">Anuluj</button>
       </div>
     </div>
   `;
@@ -56,39 +66,66 @@ function cycleLoadingMessages(textEl: HTMLElement): ReturnType<typeof setInterva
   }, 4000);
 }
 
+function animateRobot(robotEl: HTMLElement): ReturnType<typeof setInterval> {
+  let idx = 0;
+  return setInterval(() => {
+    idx = (idx + 1) % ROBOT_FRAMES.length;
+    robotEl.textContent = ROBOT_FRAMES[idx];
+  }, 500);
+}
+
 export function showLearnMorePopup(question: Question, wrongCount: number): void {
-  // Remove existing popup if any
+  if (dismissedForSession) return;
+
+  // Remove existing toast if any
   hideLearnMorePopup();
 
-  const html = createPopupHTML(question, wrongCount);
+  const html = createToastHTML(question, wrongCount);
   document.body.insertAdjacentHTML('beforeend', html);
-  popupEl = document.getElementById('learn-more-popup');
+  toastEl = document.getElementById('learn-toast');
 
   // Animate in
   requestAnimationFrame(() => {
-    popupEl?.classList.add('active');
+    toastEl?.classList.add('active');
   });
 
-  const generateBtn = document.getElementById('learn-more-generate');
-  const dismissBtn = document.getElementById('learn-more-dismiss');
+  // Auto-hide after 15 seconds if no interaction
+  autoHideTimer = setTimeout(() => hideLearnMorePopup(), 15000);
 
-  generateBtn?.addEventListener('click', () => handleGenerate(question));
-  dismissBtn?.addEventListener('click', () => hideLearnMorePopup());
+  document.getElementById('learn-toast-yes')?.addEventListener('click', () => {
+    clearAutoHide();
+    handleGenerate(question);
+  });
+  document.getElementById('learn-toast-no')?.addEventListener('click', () => hideLearnMorePopup());
+  document.getElementById('learn-toast-stop')?.addEventListener('click', () => {
+    dismissedForSession = true;
+    hideLearnMorePopup();
+  });
+  document.getElementById('learn-toast-close')?.addEventListener('click', () => hideLearnMorePopup());
+}
+
+function clearAutoHide(): void {
+  if (autoHideTimer) {
+    clearTimeout(autoHideTimer);
+    autoHideTimer = null;
+  }
 }
 
 async function handleGenerate(question: Question): Promise<void> {
   if (isGenerating) return;
   isGenerating = true;
 
-  const buttonsEl = popupEl?.querySelector('.learn-more-buttons') as HTMLElement | null;
-  const loadingEl = document.getElementById('learn-more-loading');
-  const loadingTextEl = document.getElementById('learn-more-loading-text');
-  const cancelBtn = document.getElementById('learn-more-cancel');
+  const contentEl = toastEl?.querySelector('.learn-toast-content') as HTMLElement | null;
+  const loadingEl = document.getElementById('learn-toast-loading');
+  const loadingTextEl = document.getElementById('learn-toast-loading-text');
+  const robotEl = document.getElementById('learn-toast-robot');
+  const cancelBtn = document.getElementById('learn-toast-cancel');
 
-  if (buttonsEl) buttonsEl.style.display = 'none';
+  if (contentEl) contentEl.style.display = 'none';
   if (loadingEl) loadingEl.style.display = 'flex';
 
   const messageInterval = loadingTextEl ? cycleLoadingMessages(loadingTextEl) : null;
+  const robotInterval = robotEl ? animateRobot(robotEl) : null;
   abortController = new AbortController();
 
   cancelBtn?.addEventListener('click', () => {
@@ -106,21 +143,27 @@ async function handleGenerate(question: Question): Promise<void> {
     });
 
     if (messageInterval) clearInterval(messageInterval);
+    if (robotInterval) clearInterval(robotInterval);
     hideLearnMorePopup();
     showAudioPlayer(result.audioUrl, result.title, result.script);
   } catch (err: any) {
     if (messageInterval) clearInterval(messageInterval);
+    if (robotInterval) clearInterval(robotInterval);
     if (err.name === 'AbortError') return;
 
-    // Show error state
+    // Show error briefly then hide
     if (loadingEl) loadingEl.style.display = 'none';
-    if (buttonsEl) {
-      buttonsEl.style.display = 'flex';
-      buttonsEl.innerHTML = `
-        <p class="learn-more-error">Nie udalo sie wygenerowac podcastu. Sprobuj pozniej.</p>
-        <button class="btn btn-secondary learn-more-dismiss" id="learn-more-dismiss-retry">OK</button>
+    if (contentEl) {
+      contentEl.style.display = 'flex';
+      contentEl.innerHTML = `
+        <div class="learn-toast-icon">😔</div>
+        <div class="learn-toast-text">
+          <p class="learn-toast-message">Nie udalo sie wygenerowac podcastu.</p>
+        </div>
+        <button class="learn-toast-close" id="learn-toast-close-err">&times;</button>
       `;
-      document.getElementById('learn-more-dismiss-retry')?.addEventListener('click', () => hideLearnMorePopup());
+      document.getElementById('learn-toast-close-err')?.addEventListener('click', () => hideLearnMorePopup());
+      setTimeout(() => hideLearnMorePopup(), 5000);
     }
   } finally {
     isGenerating = false;
@@ -129,11 +172,12 @@ async function handleGenerate(question: Question): Promise<void> {
 }
 
 export function hideLearnMorePopup(): void {
-  if (popupEl) {
-    popupEl.classList.remove('active');
+  clearAutoHide();
+  if (toastEl) {
+    toastEl.classList.remove('active');
     setTimeout(() => {
-      popupEl?.remove();
-      popupEl = null;
+      toastEl?.remove();
+      toastEl = null;
     }, 300);
   }
   isGenerating = false;
@@ -141,4 +185,9 @@ export function hideLearnMorePopup(): void {
     abortController.abort();
     abortController = null;
   }
+}
+
+// Reset session dismissal (called when starting a new practice session)
+export function resetLearnMoreDismissal(): void {
+  dismissedForSession = false;
 }

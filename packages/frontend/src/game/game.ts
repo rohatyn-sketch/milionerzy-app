@@ -13,7 +13,7 @@ import { checkAll as checkAllAchievements, check as checkAchievement } from '../
 import { addScore as addLeaderboardScore } from '../features/leaderboard';
 import { loadCachedQuestions, getRandomQuestions, shuffleAnswers, getQuestions } from '../features/questions';
 import { isLoggedIn } from '../auth/auth';
-import { showLearnMorePopup } from './learn-more-popup';
+import { showLearnMorePopup, resetLearnMoreDismissal } from './learn-more-popup';
 
 // State
 let questions: Question[] = [];
@@ -531,6 +531,7 @@ function startGame(): void {
 
   lifelinesUsedThisGame = 0;
   incorrectAnswersThisGame = 0;
+  resetLearnMoreDismissal();
 
   if (isDailyChallenge) {
     if (isCompletedToday()) {
