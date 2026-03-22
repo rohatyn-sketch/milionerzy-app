@@ -13,7 +13,9 @@ import { checkAll as checkAllAchievements, check as checkAchievement } from '../
 import { addScore as addLeaderboardScore } from '../features/leaderboard';
 import { loadCachedQuestions, getRandomQuestions, shuffleAnswers, getQuestions } from '../features/questions';
 import { isLoggedIn } from '../auth/auth';
-import { showLearnMorePopup, resetLearnMoreDismissal } from './learn-more-popup';
+import { showLearnMorePopup, resetLearnMoreDismissal, setOnPodcastGenerated } from './learn-more-popup';
+import { lookupPodcasts, type PodcastInfo } from '../api/podcast.api';
+import { showAudioPlayer } from './audio-player';
 
 // State
 let questions: Question[] = [];
@@ -29,6 +31,7 @@ let isDailyChallenge = false;
 let questionStartTime: number | null = null;
 let lifelinesUsedThisGame = 0;
 let incorrectAnswersThisGame = 0;
+let availablePodcasts: Record<string, PodcastInfo> = {};
 let timerWarningPlayed = false;
 let currentMaxTime = 60;
 
@@ -197,11 +200,26 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
     els.nextBtn.textContent = currentQuestionIndex >= questions.length - 1 ? 'Zobacz wynik' : 'Nastepne pytanie';
   }
 
+  // Show podcast indicator if one exists for this question
+  const existingPodcastBtn = document.getElementById('podcast-listen-btn');
+  if (existingPodcastBtn) existingPodcastBtn.remove();
+
+  const podcast = availablePodcasts[question.question];
+  if (podcast && isPracticeMode) {
+    const btn = document.createElement('button');
+    btn.id = 'podcast-listen-btn';
+    btn.className = 'btn btn-secondary podcast-listen-btn';
+    btn.innerHTML = '🎧 Posluchaj podcastu';
+    btn.addEventListener('click', () => {
+      showAudioPlayer(podcast.audioUrl, podcast.title, podcast.script);
+    });
+    els.nextBtn?.parentElement?.insertBefore(btn, els.nextBtn);
+  }
+
   els.explanationOverlay?.classList.add('active');
 
   // In practice mode, show learn-more popup if user got this question wrong 2+ times
-  if (isPracticeMode && !correct && wrongCount >= 2) {
-    const question = questions[currentQuestionIndex];
+  if (isPracticeMode && !correct && wrongCount >= 2 && !podcast) {
     showLearnMorePopup(question, wrongCount);
   }
 }
@@ -518,6 +536,11 @@ export function initGame(): void {
     }
   });
 
+  // Register callback to track newly generated podcasts
+  setOnPodcastGenerated((questionText, podcast) => {
+    availablePodcasts[questionText] = podcast;
+  });
+
   initStreak();
   startGame();
 }
@@ -560,6 +583,15 @@ function startGame(): void {
   } else {
     questions = getRandomQuestions(GAME_CONFIG.questionsPerGame).map(q => shuffleAnswers(q));
     storage.incrementGamesPlayed();
+  }
+
+  // Lookup existing podcasts for practice questions (fire and forget)
+  availablePodcasts = {};
+  if (isPracticeMode && questions.length > 0) {
+    const questionTexts = questions.map(q => q.question);
+    lookupPodcasts(questionTexts)
+      .then(podcasts => { availablePodcasts = podcasts; })
+      .catch(() => { /* silently ignore lookup failures */ });
   }
 
   currentQuestionIndex = 0;

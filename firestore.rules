@@ -28,5 +28,10 @@ service cloud.firestore {
     match /questionCache/{cacheKey} {
       allow read, write: if false;
     }
+
+    // Podcast cache: only accessible by backend (admin SDK)
+    match /podcastCache/{hash} {
+      allow read, write: if false;
+    }
   }
 }

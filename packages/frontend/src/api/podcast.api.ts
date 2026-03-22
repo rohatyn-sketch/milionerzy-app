@@ -7,7 +7,7 @@ export interface GeneratePodcastRequest {
   explanation?: string;
 }
 
-export interface GeneratePodcastResponse {
+export interface PodcastInfo {
   podcastId: string;
   audioUrl: string;
   title: string;
@@ -15,6 +15,11 @@ export interface GeneratePodcastResponse {
   script: string;
 }
 
-export async function generatePodcast(request: GeneratePodcastRequest): Promise<GeneratePodcastResponse> {
-  return apiPost<GeneratePodcastResponse>('/podcast/generate', request);
+export async function generatePodcast(request: GeneratePodcastRequest): Promise<PodcastInfo> {
+  return apiPost<PodcastInfo>('/podcast/generate', request);
+}
+
+export async function lookupPodcasts(questionTexts: string[]): Promise<Record<string, PodcastInfo>> {
+  const res = await apiPost<{ podcasts: Record<string, PodcastInfo> }>('/podcast/lookup', { questionTexts });
+  return res.podcasts;
 }

@@ -1,8 +1,10 @@
+import { createHash } from 'crypto';
 import { db } from '../config';
 import { getStorage } from 'firebase-admin/storage';
 import { COLLECTIONS } from '../firestore/collections';
 
 const PODCAST_BUCKET = process.env.PODCAST_BUCKET || 'milionerzy-487910-podcasts';
+const PODCAST_CACHE_COLLECTION = 'podcastCache';
 
 interface PodcastRequest {
   questionText: string;
@@ -24,20 +26,17 @@ interface ScriptLine {
   text: string;
 }
 
-// Check if a podcast already exists for this question (cache)
-async function findCachedPodcast(uid: string, questionText: string): Promise<PodcastResult | null> {
-  const snap = await db
-    .collection(COLLECTIONS.USERS)
-    .doc(uid)
-    .collection('podcasts')
-    .where('questionText', '==', questionText)
-    .limit(1)
-    .get();
+function questionHash(questionText: string): string {
+  return createHash('sha256').update(questionText.trim().toLowerCase()).digest('hex').slice(0, 16);
+}
 
-  if (snap.empty) return null;
+// Check global cache for an existing podcast for this question
+async function findGlobalPodcast(questionText: string): Promise<PodcastResult | null> {
+  const hash = questionHash(questionText);
+  const doc = await db.collection(PODCAST_CACHE_COLLECTION).doc(hash).get();
+  if (!doc.exists) return null;
 
-  const doc = snap.docs[0];
-  const data = doc.data();
+  const data = doc.data()!;
   return {
     podcastId: doc.id,
     audioUrl: data.audioUrl,
@@ -45,6 +44,55 @@ async function findCachedPodcast(uid: string, questionText: string): Promise<Pod
     duration: data.duration,
     script: data.script,
   };
+}
+
+// Link a podcast to a user (so they can find it later)
+async function linkPodcastToUser(uid: string, podcastId: string, questionText: string): Promise<void> {
+  await db
+    .collection(COLLECTIONS.USERS)
+    .doc(uid)
+    .collection('podcasts')
+    .doc(podcastId)
+    .set({ questionText, linkedAt: new Date().toISOString() }, { merge: true });
+}
+
+// Lookup which questions (by text) have podcasts available
+export async function lookupPodcasts(questionTexts: string[]): Promise<Record<string, PodcastResult>> {
+  const result: Record<string, PodcastResult> = {};
+
+  // Batch read from global cache
+  const hashes = questionTexts.map(q => questionHash(q));
+  const uniqueHashes = [...new Set(hashes)];
+
+  // Firestore getAll supports up to 100 docs
+  const chunks: string[][] = [];
+  for (let i = 0; i < uniqueHashes.length; i += 100) {
+    chunks.push(uniqueHashes.slice(i, i + 100));
+  }
+
+  for (const chunk of chunks) {
+    const refs = chunk.map(h => db.collection(PODCAST_CACHE_COLLECTION).doc(h));
+    const docs = await db.getAll(...refs);
+
+    for (const doc of docs) {
+      if (doc.exists) {
+        const data = doc.data()!;
+        // Map back to original question text
+        const matchingQuestions = questionTexts.filter(q => questionHash(q) === doc.id);
+        for (const qt of matchingQuestions) {
+          result[qt] = {
+            podcastId: doc.id,
+            audioUrl: data.audioUrl,
+            title: data.title,
+            duration: data.duration,
+            script: data.script,
+          };
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 // Step 1: Generate educational content via Gemini
@@ -141,7 +189,6 @@ Zwroc JSON (TYLKO tablice, bez dodatkowego tekstu):
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('Empty script from Gemini');
 
-  // Parse JSON from response
   let cleaned = text.trim();
   const jsonMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (jsonMatch) cleaned = jsonMatch[1].trim();
@@ -161,7 +208,6 @@ async function synthesizeAudio(lines: ScriptLine[]): Promise<{ audioBuffer: Buff
   const { TextToSpeechClient } = await import('@google-cloud/text-to-speech');
   const ttsClient = new TextToSpeechClient();
 
-  // Polish voices - distinct for each speaker
   const voiceConfig: Record<string, { name: string; ssmlGender: 'MALE' | 'FEMALE' }> = {
     Host: { name: 'pl-PL-Wavenet-B', ssmlGender: 'MALE' },
     Expert: { name: 'pl-PL-Wavenet-D', ssmlGender: 'FEMALE' },
@@ -192,20 +238,16 @@ async function synthesizeAudio(lines: ScriptLine[]): Promise<{ audioBuffer: Buff
         ? response.audioContent
         : Buffer.from(response.audioContent as Uint8Array);
       audioChunks.push(chunk);
-
-      // Rough duration estimate: ~150 words/min, average 5 chars/word
       estimatedDuration += (line.text.length / 5 / 150) * 60;
     }
   }
 
-  // Simple concatenation of MP3 chunks (works for sequential playback)
   const audioBuffer = Buffer.concat(audioChunks);
   return { audioBuffer, duration: Math.round(estimatedDuration) };
 }
 
-// Step 4: Upload to Firebase Storage and save metadata
-async function uploadAndSave(
-  uid: string,
+// Step 4: Upload to Storage and save to global cache
+async function uploadAndCache(
   podcastId: string,
   audioBuffer: Buffer,
   title: string,
@@ -215,57 +257,58 @@ async function uploadAndSave(
   category: string,
 ): Promise<string> {
   const bucket = getStorage().bucket(PODCAST_BUCKET);
-  const filePath = `users/${uid}/podcasts/${podcastId}.mp3`;
+  const filePath = `podcasts/${podcastId}.mp3`;
   const file = bucket.file(filePath);
 
   await file.save(audioBuffer, {
     metadata: {
       contentType: 'audio/mpeg',
-      metadata: { uid, podcastId },
+      metadata: { podcastId },
     },
   });
 
-  // Make file accessible via signed URL (valid for 7 days)
   const [audioUrl] = await file.getSignedUrl({
     action: 'read',
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
   });
 
-  // Save metadata to Firestore
-  await db
-    .collection(COLLECTIONS.USERS)
-    .doc(uid)
-    .collection('podcasts')
-    .doc(podcastId)
-    .set({
-      title,
-      audioUrl,
-      duration,
-      script,
-      questionText,
-      category,
-      createdAt: new Date().toISOString(),
-    });
+  // Save to global cache keyed by question hash
+  const hash = questionHash(questionText);
+  await db.collection(PODCAST_CACHE_COLLECTION).doc(hash).set({
+    podcastId,
+    title,
+    audioUrl,
+    duration,
+    script,
+    questionText,
+    category,
+    createdAt: new Date().toISOString(),
+    storagePath: filePath,
+  });
 
   return audioUrl;
 }
 
 export async function generatePodcast(uid: string, req: PodcastRequest): Promise<PodcastResult> {
-  // Check cache first
-  const cached = await findCachedPodcast(uid, req.questionText);
-  if (cached) return cached;
+  // Check global cache first (shared across all users)
+  const cached = await findGlobalPodcast(req.questionText);
+  if (cached) {
+    // Link to this user for their history
+    await linkPodcastToUser(uid, cached.podcastId, req.questionText);
+    return cached;
+  }
 
   // Generate content → script → audio
   const content = await generateContent(req);
   const { lines, title } = await generateScript(content, req.category);
-
   const scriptText = lines.map(l => `${l.speaker}: ${l.text}`).join('\n');
-
   const { audioBuffer, duration } = await synthesizeAudio(lines);
 
-  const podcastId = `podcast_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const podcastId = questionHash(req.questionText);
+  const audioUrl = await uploadAndCache(podcastId, audioBuffer, title, duration, scriptText, req.questionText, req.category);
 
-  const audioUrl = await uploadAndSave(uid, podcastId, audioBuffer, title, duration, scriptText, req.questionText, req.category);
+  // Link to generating user
+  await linkPodcastToUser(uid, podcastId, req.questionText);
 
   return { podcastId, audioUrl, title, duration, script: scriptText };
 }

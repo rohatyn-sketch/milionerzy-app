@@ -471,6 +471,21 @@ body {
     background: rgba(0, 0, 0, 0.3); border-radius: 10px;
 }
 
+/* === Przycisk podcastu w wyjasnieniu === */
+.podcast-listen-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; margin-bottom: 10px;
+    background: linear-gradient(135deg, rgba(30, 144, 255, 0.2), rgba(255, 215, 0, 0.15));
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color); font-weight: bold;
+    padding: 12px 20px; border-radius: 12px;
+    cursor: pointer; transition: all 0.2s; font-size: 1rem;
+}
+.podcast-listen-btn:hover {
+    background: linear-gradient(135deg, rgba(30, 144, 255, 0.35), rgba(255, 215, 0, 0.25));
+    transform: scale(1.02); box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
 /* === Toast "Ucz sie wiecej" (top-right, non-intrusive) === */
 .learn-toast {
     position: fixed; top: 20px; right: 20px;

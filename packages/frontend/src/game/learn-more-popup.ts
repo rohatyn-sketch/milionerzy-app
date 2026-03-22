@@ -1,11 +1,12 @@
 import type { Question } from '@milionerzy/shared';
-import { generatePodcast } from '../api/podcast.api';
+import { generatePodcast, type PodcastInfo } from '../api/podcast.api';
 import { showAudioPlayer } from './audio-player';
 
 let toastEl: HTMLElement | null = null;
 let isGenerating = false;
 let abortController: AbortController | null = null;
 let dismissedForSession = false;
+let onPodcastGenerated: ((questionText: string, podcast: PodcastInfo) => void) | null = null;
 let autoHideTimer: ReturnType<typeof setTimeout> | null = null;
 
 const LOADING_MESSAGES = [
@@ -72,6 +73,10 @@ function animateRobot(robotEl: HTMLElement): ReturnType<typeof setInterval> {
     idx = (idx + 1) % ROBOT_FRAMES.length;
     robotEl.textContent = ROBOT_FRAMES[idx];
   }, 500);
+}
+
+export function setOnPodcastGenerated(cb: (questionText: string, podcast: PodcastInfo) => void): void {
+  onPodcastGenerated = cb;
 }
 
 export function showLearnMorePopup(question: Question, wrongCount: number): void {
@@ -144,6 +149,7 @@ async function handleGenerate(question: Question): Promise<void> {
 
     if (messageInterval) clearInterval(messageInterval);
     if (robotInterval) clearInterval(robotInterval);
+    onPodcastGenerated?.(question.question, result);
     hideLearnMorePopup();
     showAudioPlayer(result.audioUrl, result.title, result.script);
   } catch (err: any) {
