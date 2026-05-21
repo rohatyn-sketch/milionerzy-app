@@ -24,6 +24,11 @@ export function initSound(): void {
   backgroundMusic = new Audio(SOUND_PATHS.background);
   backgroundMusic.loop = true;
   backgroundMusic.volume = 0.3;
+
+  // Auto-play background music if previously enabled
+  if (isMusicEnabled()) {
+    playBackgroundMusic();
+  }
 }
 
 export function isSfxEnabled(): boolean {

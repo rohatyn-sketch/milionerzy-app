@@ -129,7 +129,7 @@ function renderBackgrounds() {
     el.className = `shop-item ${owned ? 'owned' : ''}`;
     el.innerHTML = `
       <h3 class="shop-item-name">${bg.name}</h3>
-      <p class="shop-item-desc">${bg.description}</p>
+      <p class="shop-item-desc">${bg.description || ''}</p>
       <p class="shop-item-price">${owned ? 'Posiadane' : formatMoney(bg.price)}</p>
       <button class="shop-item-btn ${owned ? (isActive ? 'active' : 'activate') : 'buy'}"
               ${!owned && money < bg.price ? 'disabled' : ''}>

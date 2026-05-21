@@ -6,11 +6,12 @@ ${hasImage ? '\nDolaczono zdjecie z kryteriami sukcesu / materialem. Przeanalizu
 Zasady generowania:
 - Przeanalizuj podany temat i kontekst, aby zidentyfikowac WSZYSTKIE kryteria / podtematy
 - Dla KAZDEGO kryterium / podtematu wygeneruj dokladnie 3 pytania (minimum 2)
+- MINIMUM 50 pytan lacznie — jesli kryteriow jest malo, wygeneruj wiecej pytan na kazde kryterium (4-5)
 - Kazde pytanie wielokrotnego wyboru musi miec 4 odpowiedzi (dokladnie 1 poprawna)
 - Mozesz tez tworzyc pytania prawda/falsz (2 odpowiedzi: "Prawda" i "Falsz")
 - Kazde pytanie musi miec pole "category" odpowiadajace kryterium/podtematowi
 - Kazde pytanie musi miec pole "explanation" z krotkim wyjasnieniem
-- Pytania powinny byc zroznicowane pod wzgledem trudnosci
+- Pytania powinny byc zroznicowane pod wzgledem trudnosci (latwe, srednie, trudne)
 - WAZNE: Wszystkie wygenerowane pytania zostana uzyte w jednej rundzie gry
 
 Format JSON (TYLKO tablica, bez dodatkowego tekstu):
@@ -45,6 +46,10 @@ export function parseResponse(text: string): any[] {
 
   if (!Array.isArray(questions) || questions.length === 0) {
     throw new Error('Invalid questions array');
+  }
+
+  if (questions.length < 50) {
+    console.warn(`[Gemini] Only ${questions.length} questions generated (minimum 50 expected)`);
   }
 
   return questions.map((q: any, index: number) => ({

@@ -7,12 +7,12 @@ export const SHOP_THEMES: ShopTheme[] = [
 ];
 
 export const SHOP_BACKGROUNDS: ShopBackground[] = [
-  { id: 'gradient1', name: 'Gradient 1', price: 200000, cssClass: 'bg-gradient1' },
-  { id: 'gradient2', name: 'Gradient 2', price: 200000, cssClass: 'bg-gradient2' },
-  { id: 'gradient3', name: 'Gradient 3', price: 200000, cssClass: 'bg-gradient3' },
-  { id: 'gradient4', name: 'Gradient 4', price: 300000, cssClass: 'bg-gradient4' },
-  { id: 'gradient5', name: 'Gradient 5', price: 300000, cssClass: 'bg-gradient5' },
-  { id: 'gradient6', name: 'Gradient 6', price: 500000, cssClass: 'bg-gradient6' },
+  { id: 'gradient1', name: 'Zachod slonca', price: 200000, cssClass: 'bg-gradient1', description: 'Cieplae odcienie pomaranczowego i rozu' },
+  { id: 'gradient2', name: 'Ocean', price: 200000, cssClass: 'bg-gradient2', description: 'Gleboki blekit morski' },
+  { id: 'gradient3', name: 'Las', price: 200000, cssClass: 'bg-gradient3', description: 'Naturalna zielen lasu' },
+  { id: 'gradient4', name: 'Zorza polarna', price: 300000, cssClass: 'bg-gradient4', description: 'Magiczne swiatla polnocy' },
+  { id: 'gradient5', name: 'Galaktyka', price: 300000, cssClass: 'bg-gradient5', description: 'Gleboka przestrzen kosmiczna' },
+  { id: 'gradient6', name: 'Plomien', price: 500000, cssClass: 'bg-gradient6', description: 'Intensywne odcienie czerwieni i zlota' },
 ];
 
 export const SHOP_LIFELINES: LifelineItem[] = [
