@@ -1,14 +1,17 @@
 export function buildPrompt(className: string, context?: string, hasImage?: boolean): string {
-  return `Jestes ekspertem od tworzenia pytan quizowych. Wygeneruj dokladnie 65 pytan do quizu "Milionerzy" na temat: "${className}".
-${context ? `\nDodatkowy kontekst: ${context}` : ''}
+  return `Jestes ekspertem od tworzenia pytan quizowych. Wygeneruj pytania do quizu "Milionerzy" na temat: "${className}".
+${context ? `\nDodatkowy kontekst / kryteria: ${context}` : ''}
 ${hasImage ? '\nDolaczono zdjecie z kryteriami sukcesu / materialem. Przeanalizuj je dokladnie i wygeneruj pytania scisle oparte na tresci ze zdjecia.' : ''}
 
-Wymagania:
-- 55 pytan wielokrotnego wyboru (4 odpowiedzi, dokladnie 1 poprawna)
-- 10 pytan prawda/falsz (2 odpowiedzi: "Prawda" i "Falsz")
-- Kazde pytanie musi miec pole "category" pasujace do tematu
+Zasady generowania:
+- Przeanalizuj podany temat i kontekst, aby zidentyfikowac WSZYSTKIE kryteria / podtematy
+- Dla KAZDEGO kryterium / podtematu wygeneruj dokladnie 3 pytania (minimum 2)
+- Kazde pytanie wielokrotnego wyboru musi miec 4 odpowiedzi (dokladnie 1 poprawna)
+- Mozesz tez tworzyc pytania prawda/falsz (2 odpowiedzi: "Prawda" i "Falsz")
+- Kazde pytanie musi miec pole "category" odpowiadajace kryterium/podtematowi
 - Kazde pytanie musi miec pole "explanation" z krotkim wyjasnieniem
 - Pytania powinny byc zroznicowane pod wzgledem trudnosci
+- WAZNE: Wszystkie wygenerowane pytania zostana uzyte w jednej rundzie gry
 
 Format JSON (TYLKO tablica, bez dodatkowego tekstu):
 [
@@ -20,7 +23,7 @@ Format JSON (TYLKO tablica, bez dodatkowego tekstu):
       {"text": "odpowiedz 3", "correct": false},
       {"text": "odpowiedz 4", "correct": false}
     ],
-    "category": "kategoria",
+    "category": "nazwa kryterium/podtematu",
     "explanation": "wyjasnienie poprawnej odpowiedzi",
     "type": "multiple-choice"
   }
@@ -44,7 +47,8 @@ export function parseResponse(text: string): any[] {
     throw new Error('Invalid questions array');
   }
 
-  return questions.map((q: any) => ({
+  return questions.map((q: any, index: number) => ({
+    id: `q_${index}`,
     question: q.question,
     answers: q.answers,
     category: q.category || '',

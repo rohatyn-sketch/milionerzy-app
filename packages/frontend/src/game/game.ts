@@ -1,12 +1,12 @@
 import { storage } from '../state/storage';
 import { scheduleSave, immediateSave } from '../state/sync';
-import { GAME_CONFIG, formatMoney } from '@milionerzy/shared';
+import { GAME_CONFIG, formatMoney, getRewardPerQuestion, getPenaltyPerQuestion } from '@milionerzy/shared';
 import type { Question } from '@milionerzy/shared';
 import { isTrueFalse } from '@milionerzy/shared';
 import { applyTheme } from '../ui/theme';
 import { initKeyboard, setAnswerCallback, setNextCallback, setEscapeCallback } from '../features/keyboard';
 import { initStreak, resetStreak, incrementStreak, getMultiplier, isNewLevel, getDisplayInfo } from '../features/streak';
-import { getTimerForQuestion, getMoneyMultiplier, getLevelName, getLevelColor, calculateReward, getFiftyRemoves } from '../features/difficulty';
+import { getTimerForQuestion, getLevelName, getLevelColor, getFiftyRemoves } from '../features/difficulty';
 import { getDailyQuestions, isCompletedToday, markCompleted, DAILY_MONEY_MULTIPLIER } from '../features/daily';
 import { playCorrect, playIncorrect, playTimerWarning, playClick, playStreak, initSound } from '../features/sound';
 import { checkAll as checkAllAchievements, check as checkAchievement } from '../features/achievements';
@@ -30,6 +30,10 @@ let lifelinesUsedThisGame = 0;
 let incorrectAnswersThisGame = 0;
 let timerWarningPlayed = false;
 let currentMaxTime = 60;
+
+// Dynamic reward per question — calculated at game start based on questions.length
+let rewardPerQ = GAME_CONFIG.moneyPerCorrect;
+let penaltyPerQ = GAME_CONFIG.moneyPerWrong;
 
 // DOM Elements
 let els: Record<string, HTMLElement | null> = {};
@@ -97,6 +101,7 @@ function startTimer(): void {
   stopTimer();
   const questionNum = currentQuestionIndex + 1;
   timeLeft = getTimerForQuestion(questionNum);
+  currentMaxTime = timeLeft;
   updateTimerDisplay();
 
   timerInterval = setInterval(() => {
@@ -117,10 +122,9 @@ function updateDifficultyIndicator(questionNum: number): void {
   if (els.difficultyIndicator) {
     const name = getLevelName(questionNum);
     const color = getLevelColor(questionNum);
-    const mult = getMoneyMultiplier(questionNum);
     els.difficultyIndicator.innerHTML = `
       <span style="color: ${color}">${name}</span>
-      <span class="multiplier">x${mult} PLN</span>
+      <span class="multiplier">${formatMoney(rewardPerQ)} / pytanie</span>
     `;
   }
 }
@@ -166,7 +170,7 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
     ? (correctAns.text === 'Prawda' ? 'Prawda' : 'Falsz')
     : correctAns.text;
 
-  const moneyChange = correct ? (reward || GAME_CONFIG.moneyPerCorrect) : GAME_CONFIG.moneyPerWrong;
+  const moneyChange = correct ? (reward || rewardPerQ) : penaltyPerQ;
 
   if (els.explanationResult) {
     els.explanationResult.textContent = customTitle || (correct ? 'Poprawna odpowiedz!' : 'Bledna odpowiedz!');
@@ -209,7 +213,7 @@ function handleTimeOut(): void {
   const correctIndex = question.answers.findIndex(a => a.correct);
   getAnswerBtns()[correctIndex]?.classList.add('correct');
 
-  currentMoney = Math.max(-gameStartMoney, currentMoney + GAME_CONFIG.moneyPerWrong);
+  currentMoney = Math.max(-gameStartMoney, currentMoney + penaltyPerQ);
   storage.setMoney(gameStartMoney + currentMoney);
   if (question.id) storage.addIncorrectQuestion(question.id);
   scheduleSave();
@@ -224,7 +228,6 @@ function handleAnswer(selectedIndex: number): void {
 
   const btns = getAnswerBtns();
   const question = questions[currentQuestionIndex];
-  const questionNum = currentQuestionIndex + 1;
   const answerTime = (Date.now() - (questionStartTime || Date.now())) / 1000;
 
   const isCorrect = question.answers[selectedIndex].correct;
@@ -241,9 +244,8 @@ function handleAnswer(selectedIndex: number): void {
       incrementStreak();
       if (isNewLevel()) playStreak();
 
-      let reward = GAME_CONFIG.moneyPerCorrect;
       const sm = getMultiplier();
-      reward = calculateReward(GAME_CONFIG.moneyPerCorrect, questionNum, sm);
+      let reward = Math.round(rewardPerQ * sm);
       if (isDailyChallenge) reward = Math.round(reward * DAILY_MONEY_MULTIPLIER);
 
       currentMoney += reward;
@@ -265,12 +267,12 @@ function handleAnswer(selectedIndex: number): void {
       incorrectAnswersThisGame++;
       btns[correctIndex]?.classList.add('correct');
 
-      currentMoney = Math.max(-gameStartMoney, currentMoney + GAME_CONFIG.moneyPerWrong);
+      currentMoney = Math.max(-gameStartMoney, currentMoney + penaltyPerQ);
       storage.setMoney(gameStartMoney + currentMoney);
       if (question.id) storage.addIncorrectQuestion(question.id);
       scheduleSave();
       playIncorrect();
-      showFloatingMoney(GAME_CONFIG.moneyPerWrong, false);
+      showFloatingMoney(penaltyPerQ, false);
       showExplanation(false, question.explanation || '');
     }
 
@@ -544,9 +546,15 @@ function startGame(): void {
       return;
     }
   } else {
-    questions = getRandomQuestions(GAME_CONFIG.questionsPerGame).map(q => shuffleAnswers(q));
+    // Use ALL available questions for this class in one round
+    const allQ = getQuestions();
+    questions = allQ.map(q => shuffleAnswers(q));
     storage.incrementGamesPlayed();
   }
+
+  // Dynamically calculate reward/penalty based on number of questions in this round
+  rewardPerQ = getRewardPerQuestion(questions.length);
+  penaltyPerQ = getPenaltyPerQuestion(questions.length);
 
   currentQuestionIndex = 0;
   gameStartMoney = storage.getMoney() || 0;

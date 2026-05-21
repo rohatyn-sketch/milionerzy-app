@@ -13,7 +13,10 @@ export type {
 } from './types/api';
 
 // Constants
-export { QUESTIONS_PER_GAME, MONEY_PER_CORRECT, GAME_CONFIG } from './constants/game';
+export {
+  QUESTIONS_PER_GAME, MONEY_PER_CORRECT, GAME_CONFIG, TOTAL_GAME_POT,
+  getRewardPerQuestion, getPenaltyPerQuestion,
+} from './constants/game';
 export { DAILY_QUESTIONS_COUNT, DAILY_MONEY_MULTIPLIER } from './constants/daily';
 export {
   DIFFICULTY_LEVELS, getDifficultyForQuestion, getDifficultyLevel, getDifficultyConfig,
