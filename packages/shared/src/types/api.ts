@@ -19,7 +19,7 @@ export interface ProgressResponse {
   achievements: string[];
   activeClassId: string;
   classes: QuizClass[];
-  incorrectQuestions: Record<string, number[]>;
+  incorrectQuestions: Record<string, (number | string)[]>;
 }
 
 export type LoadProgressResponse = ProgressResponse;
@@ -31,7 +31,7 @@ export interface SaveProgressRequest {
   achievements?: string[];
   activeClassId?: string;
   classes?: QuizClass[];
-  incorrectQuestions?: Record<string, number[]>;
+  incorrectQuestions?: Record<string, (number | string)[]>;
 }
 
 export interface GenerateRequest {
