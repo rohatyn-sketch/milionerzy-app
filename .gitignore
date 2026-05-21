@@ -42,3 +42,8 @@ npm-debug.log*
 
 # Coverage
 coverage/
+
+# Playwright
+playwright-report/
+test-results/
+.auth/
