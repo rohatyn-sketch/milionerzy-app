@@ -2,6 +2,8 @@ import { storage } from '../state/storage';
 import { loadQuestionsForClass } from '../features/questions';
 import { isLoggedIn, signIn } from '../auth/auth';
 
+let savedOnUpdate: (() => void) | undefined;
+
 function escapeHtml(text: string): string {
   const div = document.createElement('div');
   div.textContent = text;
@@ -9,6 +11,10 @@ function escapeHtml(text: string): string {
 }
 
 export function renderClassCards(onUpdate?: () => void): void {
+  // Persist the callback so re-renders from auth.ts (without callback) still work
+  if (onUpdate) savedOnUpdate = onUpdate;
+  const effectiveOnUpdate = onUpdate || savedOnUpdate;
+
   const container = document.getElementById('class-selector');
   if (!container) return;
 
@@ -36,14 +42,14 @@ export function renderClassCards(onUpdate?: () => void): void {
 
     card.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).classList.contains('class-card-delete')) return;
-      selectClass(cls.id, onUpdate);
+      selectClass(cls.id, effectiveOnUpdate);
     });
 
     if (!cls.isDefault) {
       card.querySelector('.class-card-delete')?.addEventListener('click', (e) => {
         e.stopPropagation();
         if (confirm(`Czy na pewno chcesz usunac klase "${cls.name}"?`)) {
-          deleteClass(cls.id, onUpdate);
+          deleteClass(cls.id, effectiveOnUpdate);
         }
       });
     }

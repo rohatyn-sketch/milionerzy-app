@@ -13,6 +13,9 @@ import { checkAll as checkAllAchievements, check as checkAchievement } from '../
 import { addScore as addLeaderboardScore } from '../features/leaderboard';
 import { loadCachedQuestions, getRandomQuestions, shuffleAnswers, getQuestions } from '../features/questions';
 import { isLoggedIn } from '../auth/auth';
+import { showLearnMorePopup, resetLearnMoreDismissal, setOnPodcastGenerated } from './learn-more-popup';
+import { lookupPodcasts, type PodcastInfo } from '../api/podcast.api';
+import { showAudioPlayer } from './audio-player';
 
 // State
 let questions: Question[] = [];
@@ -28,6 +31,7 @@ let isDailyChallenge = false;
 let questionStartTime: number | null = null;
 let lifelinesUsedThisGame = 0;
 let incorrectAnswersThisGame = 0;
+let availablePodcasts: Record<string, PodcastInfo> = {};
 let timerWarningPlayed = false;
 let currentMaxTime = 60;
 
@@ -162,7 +166,7 @@ function showFloatingMoney(amount: number, positive: boolean): void {
   setTimeout(() => el.remove(), 2000);
 }
 
-function showExplanation(correct: boolean, explanation: string, customTitle: string | null = null, reward: number | null = null): void {
+function showExplanation(correct: boolean, explanation: string, customTitle: string | null = null, reward: number | null = null, wrongCount: number = 0): void {
   const question = questions[currentQuestionIndex];
   let correctAnswerText: string;
   const correctAns = question.answers.find(a => a.correct)!;
@@ -200,7 +204,28 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
     els.nextBtn.textContent = currentQuestionIndex >= questions.length - 1 ? 'Zobacz wynik' : 'Nastepne pytanie';
   }
 
+  // Show podcast indicator if one exists for this question
+  const existingPodcastBtn = document.getElementById('podcast-listen-btn');
+  if (existingPodcastBtn) existingPodcastBtn.remove();
+
+  const podcast = availablePodcasts[question.question];
+  if (podcast && isPracticeMode) {
+    const btn = document.createElement('button');
+    btn.id = 'podcast-listen-btn';
+    btn.className = 'btn btn-secondary podcast-listen-btn';
+    btn.innerHTML = '🎧 Posluchaj podcastu';
+    btn.addEventListener('click', () => {
+      showAudioPlayer(podcast.audioUrl, podcast.title, podcast.script);
+    });
+    els.nextBtn?.parentElement?.insertBefore(btn, els.nextBtn);
+  }
+
   els.explanationOverlay?.classList.add('active');
+
+  // In practice mode, show learn-more popup if user got this question wrong 2+ times
+  if (isPracticeMode && !correct && wrongCount >= 2 && !podcast) {
+    showLearnMorePopup(question, wrongCount);
+  }
 }
 
 function handleTimeOut(): void {
@@ -215,10 +240,13 @@ function handleTimeOut(): void {
 
   currentMoney = Math.max(-gameStartMoney, currentMoney + penaltyPerQ);
   storage.setMoney(gameStartMoney + currentMoney);
-  if (question.id) storage.addIncorrectQuestion(question.id);
+  let wrongCount = 0;
+  if (question.id) {
+    wrongCount = storage.incrementIncorrectQuestion(question.id);
+  }
   scheduleSave();
   playIncorrect();
-  showExplanation(false, question.explanation || '', 'Czas minal!');
+  showExplanation(false, question.explanation || '', 'Czas minal!', null, wrongCount);
 }
 
 function handleAnswer(selectedIndex: number): void {
@@ -269,11 +297,14 @@ function handleAnswer(selectedIndex: number): void {
 
       currentMoney = Math.max(-gameStartMoney, currentMoney + penaltyPerQ);
       storage.setMoney(gameStartMoney + currentMoney);
-      if (question.id) storage.addIncorrectQuestion(question.id);
+      let wrongCount = 0;
+      if (question.id) {
+        wrongCount = storage.incrementIncorrectQuestion(question.id);
+      }
       scheduleSave();
       playIncorrect();
       showFloatingMoney(penaltyPerQ, false);
-      showExplanation(false, question.explanation || '');
+      showExplanation(false, question.explanation || '', null, null, wrongCount);
     }
 
     checkAllAchievements();
@@ -507,6 +538,11 @@ export function initGame(): void {
     }
   });
 
+  // Register callback to track newly generated podcasts
+  setOnPodcastGenerated((questionText, podcast) => {
+    availablePodcasts[questionText] = podcast;
+  });
+
   initStreak();
   startGame();
 }
@@ -520,6 +556,7 @@ function startGame(): void {
 
   lifelinesUsedThisGame = 0;
   incorrectAnswersThisGame = 0;
+  resetLearnMoreDismissal();
 
   if (isDailyChallenge) {
     if (isCompletedToday()) {
@@ -555,6 +592,15 @@ function startGame(): void {
   // Dynamically calculate reward/penalty based on number of questions in this round
   rewardPerQ = getRewardPerQuestion(questions.length);
   penaltyPerQ = getPenaltyPerQuestion(questions.length);
+
+  // Lookup existing podcasts for practice questions (fire and forget)
+  availablePodcasts = {};
+  if (isPracticeMode && questions.length > 0) {
+    const questionTexts = questions.map(q => q.question);
+    lookupPodcasts(questionTexts)
+      .then(podcasts => { availablePodcasts = podcasts; })
+      .catch(() => { /* silently ignore lookup failures */ });
+  }
 
   currentQuestionIndex = 0;
   gameStartMoney = storage.getMoney() || 0;

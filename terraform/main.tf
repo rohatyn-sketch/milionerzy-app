@@ -23,6 +23,7 @@ resource "google_project_service" "apis" {
     "artifactregistry.googleapis.com",
     "iamcredentials.googleapis.com",
     "iam.googleapis.com",
+    "texttospeech.googleapis.com",
   ])
   project = var.project_id
   service = each.value

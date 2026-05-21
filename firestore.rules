@@ -9,6 +9,12 @@ service cloud.firestore {
       match /classes/{classId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+
+      // Podcasts subcollection: users can read their own, only backend writes
+      match /podcasts/{podcastId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
     }
 
     // Leaderboard: anyone can read, authenticated users can create
@@ -20,6 +26,11 @@ service cloud.firestore {
 
     // Question cache: only accessible by backend (admin SDK)
     match /questionCache/{cacheKey} {
+      allow read, write: if false;
+    }
+
+    // Podcast cache: only accessible by backend (admin SDK)
+    match /podcastCache/{hash} {
       allow read, write: if false;
     }
   }

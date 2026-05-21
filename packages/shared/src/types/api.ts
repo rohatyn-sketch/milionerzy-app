@@ -19,7 +19,7 @@ export interface ProgressResponse {
   achievements: string[];
   activeClassId: string;
   classes: QuizClass[];
-  incorrectQuestions: Record<string, (number | string)[]>;
+  incorrectQuestions: Record<string, IncorrectQuestionsMap>;
 }
 
 export type LoadProgressResponse = ProgressResponse;
@@ -31,8 +31,11 @@ export interface SaveProgressRequest {
   achievements?: string[];
   activeClassId?: string;
   classes?: QuizClass[];
-  incorrectQuestions?: Record<string, (number | string)[]>;
+  incorrectQuestions?: Record<string, IncorrectQuestionsMap>;
 }
+
+/** Map of questionId → wrong answer count */
+export type IncorrectQuestionsMap = Record<string, number>;
 
 export interface GenerateRequest {
   className: string;
