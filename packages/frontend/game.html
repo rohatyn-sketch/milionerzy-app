@@ -2,6 +2,13 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <script>
+      (function () {
+        var h = location.hostname;
+        var allowed = h === 'milionerzy.app' || h === 'www.milionerzy.app' || h === 'localhost' || h === '127.0.0.1';
+        if (!allowed) location.replace('https://milionerzy.app' + location.pathname + location.search + location.hash);
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Milionerzy - Gra</title>
     <link rel="stylesheet" href="src/css/style.css">

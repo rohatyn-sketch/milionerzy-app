@@ -7,7 +7,7 @@ const SOUND_PATHS: Record<string, string> = {
   achievement: '/assets/sounds/achievement.mp3',
   streak: '/assets/sounds/streak.mp3',
   click: '/assets/sounds/click.mp3',
-  background: '/assets/sounds/background.mp3',
+  background: '/assets/sounds/background.m4a',
 };
 
 const audioCache: Record<string, HTMLAudioElement> = {};
