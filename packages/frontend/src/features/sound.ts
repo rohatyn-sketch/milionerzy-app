@@ -25,10 +25,23 @@ export function initSound(): void {
   backgroundMusic.loop = true;
   backgroundMusic.volume = 0.3;
 
-  // Auto-play background music if previously enabled
+  // Auto-play background music if previously enabled.
+  // Browsers block autoplay until the first user gesture, so the immediate
+  // play() may be silently rejected. If music is enabled, also retry on the
+  // first interaction so it starts without the user having to toggle it.
   if (isMusicEnabled()) {
     playBackgroundMusic();
+    armAutoplayOnFirstGesture();
   }
+}
+
+function armAutoplayOnFirstGesture(): void {
+  const events = ['pointerdown', 'keydown', 'touchstart'];
+  const start = (): void => {
+    events.forEach((ev) => document.removeEventListener(ev, start));
+    if (isMusicEnabled()) playBackgroundMusic();
+  };
+  events.forEach((ev) => document.addEventListener(ev, start));
 }
 
 export function isSfxEnabled(): boolean {
