@@ -2,6 +2,7 @@ import express from 'express';
 import { errorHandler } from './middleware/error-handler';
 import authRoutes from './routes/auth';
 import progressRoutes from './routes/progress';
+import classesRoutes from './routes/classes';
 import generateRoutes from './routes/generate';
 import criteriaRoutes from './routes/criteria';
 import leaderboardRoutes from './routes/leaderboard';
@@ -30,6 +31,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user/progress', progressRoutes);
+app.use('/api/user/classes', classesRoutes);
 app.use('/api/generate', generateRoutes);
 app.use('/api/criteria', criteriaRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);

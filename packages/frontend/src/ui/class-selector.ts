@@ -1,6 +1,8 @@
 import { storage } from '../state/storage';
 import { loadQuestionsForClass } from '../features/questions';
 import { isLoggedIn, signIn } from '../auth/auth';
+import { immediateSave } from '../state/sync';
+import { deleteClassOnServer } from '../api/class.api';
 
 let savedOnUpdate: (() => void) | undefined;
 
@@ -130,4 +132,13 @@ function deleteClass(classId: string, onUpdate?: () => void): void {
 
   renderClassCards(onUpdate);
   onUpdate?.();
+
+  // Classes live in a server subcollection that plain progress-sync doesn't
+  // touch, so without this the deleted class is merged back in on the next
+  // reload/login. Delete it server-side, and persist the activeClassId change.
+  if (isLoggedIn()) {
+    deleteClassOnServer(classId).catch((err) =>
+      console.error('[Class] Nie udalo sie usunac klasy na serwerze:', err));
+    immediateSave();
+  }
 }
