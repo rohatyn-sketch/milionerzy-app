@@ -15,6 +15,7 @@ const googleProvider = new GoogleAuthProvider();
 
 let currentUser: User | null = null;
 let autoSaveInterval: ReturnType<typeof setInterval> | null = null;
+let signInInProgress = false;
 
 export function getCurrentUser(): User | null {
   return currentUser;
@@ -25,6 +26,10 @@ export function isLoggedIn(): boolean {
 }
 
 export async function signIn(): Promise<void> {
+  // Guard against a second popup being opened while one is already pending,
+  // which makes Firebase reject the first with auth/cancelled-popup-request.
+  if (signInInProgress) return;
+  signInInProgress = true;
   try {
     const result = await signInWithPopup(firebaseAuth, googleProvider);
     currentUser = result.user;
@@ -38,8 +43,21 @@ export async function signIn(): Promise<void> {
     updateUI();
     console.log('[Auth] Zalogowano:', currentUser.displayName);
   } catch (err: any) {
-    console.error('[Auth] Blad logowania:', err.message);
-    alert('Blad logowania: ' + err.message);
+    // Harmless: the user closed the popup, or a duplicate click opened a
+    // second one. Don't nag with an alert in those cases.
+    const benign = [
+      'auth/cancelled-popup-request',
+      'auth/popup-closed-by-user',
+      'auth/user-cancelled',
+    ];
+    if (benign.includes(err?.code)) {
+      console.warn('[Auth] Logowanie przerwane:', err.code);
+    } else {
+      console.error('[Auth] Blad logowania:', err.message);
+      alert('Blad logowania: ' + err.message);
+    }
+  } finally {
+    signInInProgress = false;
   }
 }
 
