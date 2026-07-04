@@ -99,7 +99,15 @@ export async function moderateTopic(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts }],
-          generationConfig: { temperature: 0, maxOutputTokens: 256 },
+          // gemini-3-flash is a thinking model: it spends output tokens on
+          // internal reasoning before the answer. thinkingLevel 'low' keeps it
+          // cheap, and 1024 tokens leaves room so the JSON verdict is never
+          // truncated (a MAX_TOKENS cutoff would drop us to fail-open).
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 1024,
+            thinkingConfig: { thinkingLevel: 'low' },
+          },
         }),
       }
     );
