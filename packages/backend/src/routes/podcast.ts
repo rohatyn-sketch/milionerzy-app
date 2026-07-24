@@ -1,6 +1,7 @@
 import { Router, type IRouter } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { generatePodcast, lookupPodcasts } from '../services/podcast.service';
+import { isBlocked } from '../services/moderation';
 
 const router: IRouter = Router();
 
@@ -9,6 +10,15 @@ router.post('/generate', authMiddleware, async (req: AuthRequest, res) => {
     const { questionText, category, correctAnswer, explanation } = req.body;
     if (!questionText || !correctAnswer) {
       res.status(400).json({ error: 'Missing questionText or correctAnswer' });
+      return;
+    }
+
+    // This text comes from the client, so it cannot be assumed to be a question
+    // that already passed generation-time moderation. The local blocklist is
+    // free to run and keeps arbitrary text from reaching the model.
+    if (isBlocked(`${questionText} ${correctAnswer} ${explanation || ''}`)) {
+      console.warn('[Podcast] Blocked by local blocklist');
+      res.status(400).json({ error: 'Tresc zawiera niedozwolone slownictwo.' });
       return;
     }
 
