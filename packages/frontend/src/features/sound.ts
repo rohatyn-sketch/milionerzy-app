@@ -1,34 +1,42 @@
 import { storage } from '../state/storage';
 
-const SOUND_PATHS: Record<string, string> = {
+const SFX_PATHS: Record<string, string> = {
   correct: '/assets/sounds/correct.mp3',
   incorrect: '/assets/sounds/incorrect.mp3',
   timerWarning: '/assets/sounds/timer-warning.mp3',
   achievement: '/assets/sounds/achievement.mp3',
   streak: '/assets/sounds/streak.mp3',
   click: '/assets/sounds/click.mp3',
-  background: '/assets/sounds/background.m4a',
+};
+
+// Two distinct background tracks: a calmer loop for the menus and a separate
+// track for the in-game question screen. Each page loads the one it needs by
+// passing a track to initSound().
+export type MusicTrack = 'menu' | 'game';
+
+const MUSIC_PATHS: Record<MusicTrack, string> = {
+  menu: '/assets/sounds/background.m4a',
+  game: '/assets/sounds/game.m4a',
 };
 
 const audioCache: Record<string, HTMLAudioElement> = {};
 let backgroundMusic: HTMLAudioElement | null = null;
 
-export function initSound(): void {
-  Object.entries(SOUND_PATHS).forEach(([key, path]) => {
-    if (key !== 'background') {
-      const audio = new Audio(path);
-      audio.preload = 'auto';
-      audioCache[key] = audio;
-    }
+export function initSound(track: MusicTrack = 'menu'): void {
+  Object.entries(SFX_PATHS).forEach(([key, path]) => {
+    const audio = new Audio(path);
+    audio.preload = 'auto';
+    audioCache[key] = audio;
   });
-  backgroundMusic = new Audio(SOUND_PATHS.background);
+
+  backgroundMusic = new Audio(MUSIC_PATHS[track]);
   backgroundMusic.loop = true;
   backgroundMusic.volume = 0.3;
 
-  // Auto-play background music if previously enabled.
+  // Music is on by default (see isMusicEnabled), so it starts automatically.
   // Browsers block autoplay until the first user gesture, so the immediate
-  // play() may be silently rejected. If music is enabled, also retry on the
-  // first interaction so it starts without the user having to toggle it.
+  // play() may be silently rejected; when enabled we also retry on the first
+  // interaction so it starts without the user having to touch anything.
   if (isMusicEnabled()) {
     playBackgroundMusic();
     armAutoplayOnFirstGesture();
@@ -51,7 +59,9 @@ export function isSfxEnabled(): boolean {
 
 export function isMusicEnabled(): boolean {
   const v = storage.getSoundMusic();
-  return v === null ? false : v;
+  // Auto-on: music plays by default and only stays off if the user explicitly
+  // turned it off (stored false).
+  return v === null ? true : v;
 }
 
 function play(name: string): void {

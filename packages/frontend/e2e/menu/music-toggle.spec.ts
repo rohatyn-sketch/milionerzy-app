@@ -1,31 +1,32 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Music toggle', () => {
-  test('enabling music changes toggle state and persists preference', async ({ page }) => {
+  test('toggling music changes state and persists preference', async ({ page }) => {
     await page.goto('/');
 
     const musicToggle = page.locator('#music-toggle');
     await expect(musicToggle).toBeVisible();
-    await expect(musicToggle).toHaveText(/OFF/);
-
-    await test.step('click to enable music', async () => {
-      await musicToggle.click();
-      await expect(musicToggle).toHaveText(/ON/);
-    });
-
-    await test.step('preference is saved to localStorage', async () => {
-      const stored = await page.evaluate(() => localStorage.getItem('milionerzy_sound_music'));
-      expect(stored).toBe('true');
-    });
+    // Music is on by default (auto-on), so a fresh visit shows ON.
+    await expect(musicToggle).toHaveText(/ON/);
 
     await test.step('click to disable music', async () => {
       await musicToggle.click();
       await expect(musicToggle).toHaveText(/OFF/);
     });
 
-    await test.step('preference is updated in localStorage', async () => {
+    await test.step('preference is saved to localStorage', async () => {
       const stored = await page.evaluate(() => localStorage.getItem('milionerzy_sound_music'));
       expect(stored).toBe('false');
+    });
+
+    await test.step('click to re-enable music', async () => {
+      await musicToggle.click();
+      await expect(musicToggle).toHaveText(/ON/);
+    });
+
+    await test.step('preference is updated in localStorage', async () => {
+      const stored = await page.evaluate(() => localStorage.getItem('milionerzy_sound_music'));
+      expect(stored).toBe('true');
     });
   });
 

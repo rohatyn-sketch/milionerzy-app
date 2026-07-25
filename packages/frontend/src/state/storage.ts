@@ -333,7 +333,7 @@ export const storage = {
         activeTheme: this.getActiveTheme() || 'default',
         activeBackground: this.getActiveBackground() || 'default',
         soundSfx: this.getSoundSfx() ?? true,
-        soundMusic: this.getSoundMusic() ?? false,
+        soundMusic: this.getSoundMusic() ?? true,
         ownedThemes: this.getThemes() || [],
         ownedBackgrounds: this.getBackgrounds() || [],
       },
