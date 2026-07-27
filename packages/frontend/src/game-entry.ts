@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   storage.init();
   initAuth({ skipRestore: true });
   applyTheme();
-  initSound();
+  initSound('game');
   loadCachedQuestions();
   await waitForAuth();
   initGame();

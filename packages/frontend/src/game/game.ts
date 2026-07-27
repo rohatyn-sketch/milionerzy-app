@@ -481,7 +481,7 @@ function confirmExit(): void {
 
 export function initGame(): void {
   cacheElements();
-  initSound();
+  initSound('game');
   applyTheme();
   updateLifelineCounts();
   initKeyboard();
