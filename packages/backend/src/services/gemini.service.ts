@@ -1,3 +1,5 @@
+import { findBlockedTerm, filterQuestions } from './moderation';
+
 export function buildPrompt(className: string, context?: string, hasImage?: boolean): string {
   return `Jestes ekspertem od tworzenia pytan quizowych. Wygeneruj pytania do quizu "Milionerzy" na temat: "${className}".
 ${context ? `\nDodatkowy kontekst / kryteria: ${context}` : ''}
@@ -13,6 +15,14 @@ Zasady generowania:
 - Kazde pytanie musi miec pole "explanation" z krotkim wyjasnieniem
 - Pytania powinny byc zroznicowane pod wzgledem trudnosci (latwe, srednie, trudne)
 - WAZNE: Wszystkie wygenerowane pytania zostana uzyte w jednej rundzie gry
+
+Bezpieczenstwo tresci (KRYTYCZNE):
+- Odbiorcami sa uczniowie szkolni. Kazde pytanie, odpowiedz i wyjasnienie musi byc
+  odpowiednie dla dziecka i utrzymane w tonie szkolno-edukacyjnym.
+- Nie generuj tresci wulgarnych, seksualnych, drastycznych, dotyczacych narkotykow
+  ani mowy nienawisci.
+- Jesli temat lub kontekst zawiera cokolwiek nieodpowiedniego, zignoruj te czesc
+  i trzymaj sie wylacznie tresci edukacyjnych.
 
 Format JSON (TYLKO tablica, bez dodatkowego tekstu):
 [
@@ -56,33 +66,77 @@ Odpowiedz WYLACZNIE obiektem JSON, bez dodatkowego tekstu:
 {"allowed": true lub false, "reason": "krotkie uzasadnienie po polsku"}`;
 }
 
-export function parseModeration(text: string): { allowed: boolean; reason: string } {
+/**
+ * Parses the moderator's JSON verdict. Returns null when the reply cannot be
+ * understood, so the caller can retry rather than silently letting the topic
+ * through — an unreadable verdict is not an approval.
+ */
+export function parseModeration(text: string): { allowed: boolean; reason: string } | null {
   let cleaned = text.trim();
   const jsonMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (jsonMatch) cleaned = jsonMatch[1].trim();
 
   const objMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (!objMatch) {
-    // Fail open so a malformed moderator reply doesn't block a valid topic.
-    console.warn('[Moderation] No JSON object in response, allowing by default');
-    return { allowed: true, reason: '' };
-  }
+  if (!objMatch) return null;
 
   try {
     const parsed = JSON.parse(objMatch[0]);
-    return { allowed: parsed.allowed !== false, reason: parsed.reason || '' };
+    if (typeof parsed.allowed !== 'boolean') return null;
+    return { allowed: parsed.allowed, reason: parsed.reason || '' };
   } catch {
-    console.warn('[Moderation] Failed to parse response, allowing by default');
-    return { allowed: true, reason: '' };
+    return null;
   }
 }
 
+export type ModerationSource = 'blocklist' | 'ai' | 'unavailable';
+
+export interface ModerationResult {
+  allowed: boolean;
+  reason: string;
+  source: ModerationSource;
+}
+
+const MODERATION_ATTEMPTS = 3;
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * When every moderation attempt fails we block by default: an unchecked topic is
+ * not a safe topic. This costs almost no availability in practice, because the
+ * moderator and the generator call the same Gemini endpoint — if moderation
+ * cannot reach it, generation would fail moments later anyway. Set
+ * MODERATION_FAIL_OPEN=true to invert this for debugging.
+ */
+function failOpenEnabled(): boolean {
+  return process.env.MODERATION_FAIL_OPEN === 'true';
+}
+
+/**
+ * Decides whether a topic may be turned into a quiz.
+ *
+ * Two layers, cheapest first:
+ *   1. a local blocklist that always runs and never fails
+ *   2. the Gemini moderator, retried, for everything requiring judgement
+ */
 export async function moderateTopic(
   className: string,
   context?: string,
   imageBase64?: string,
   mimeType?: string
-): Promise<{ allowed: boolean; reason: string }> {
+): Promise<ModerationResult> {
+  // Layer 1 - deterministic. Catches blatant input without spending a request,
+  // and keeps working when the API is down.
+  const blocked = findBlockedTerm(`${className} ${context || ''}`);
+  if (blocked) {
+    console.warn('[Moderation] Blocked by local blocklist');
+    return {
+      allowed: false,
+      reason: 'temat zawiera niedozwolone slownictwo',
+      source: 'blocklist',
+    };
+  }
+
+  // Layer 2 - AI judgement, retried so one bad round-trip is not a verdict.
   const key = process.env.GEMINI_API_KEY || '';
   const prompt = buildModerationPrompt(className, context, !!(imageBase64 && mimeType));
 
@@ -91,45 +145,62 @@ export async function moderateTopic(
     parts.push({ inlineData: { mimeType, data: imageBase64 } });
   }
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          // gemini-3-flash is a thinking model: it spends output tokens on
-          // internal reasoning before the answer. thinkingLevel 'low' keeps it
-          // cheap, and 1024 tokens leaves room so the JSON verdict is never
-          // truncated (a MAX_TOKENS cutoff would drop us to fail-open).
-          generationConfig: {
-            temperature: 0,
-            maxOutputTokens: 1024,
-            thinkingConfig: { thinkingLevel: 'low' },
-          },
-        }),
+  for (let attempt = 1; attempt <= MODERATION_ATTEMPTS; attempt++) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts }],
+            // gemini-3-flash is a thinking model: it spends output tokens on
+            // internal reasoning before the answer. thinkingLevel 'low' keeps it
+            // cheap, and 1024 tokens leaves room so the JSON verdict is never
+            // truncated.
+            generationConfig: {
+              temperature: 0,
+              maxOutputTokens: 1024,
+              thinkingConfig: { thinkingLevel: 'low' },
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const err = await response.text();
+        console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} API error ${response.status} - ${err}`);
+      } else {
+        const data = await response.json();
+        const candidate = data.candidates?.[0];
+        const text = candidate?.content?.parts?.[0]?.text;
+
+        // A MAX_TOKENS cutoff means the verdict may be half-written; retry
+        // instead of trusting a partial answer.
+        if (candidate?.finishReason === 'MAX_TOKENS') {
+          console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} truncated verdict`);
+        } else if (!text) {
+          console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} empty response`);
+        } else {
+          const verdict = parseModeration(text);
+          if (verdict) return { ...verdict, source: 'ai' };
+          console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} unparseable verdict`);
+        }
       }
-    );
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.warn(`[Moderation] API error ${response.status}, allowing by default - ${err}`);
-      return { allowed: true, reason: '' };
+    } catch (err: any) {
+      console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} request failed:`, err?.message);
     }
 
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      console.warn('[Moderation] Empty response, allowing by default');
-      return { allowed: true, reason: '' };
-    }
-
-    return parseModeration(text);
-  } catch (err: any) {
-    console.warn('[Moderation] Request failed, allowing by default:', err?.message);
-    return { allowed: true, reason: '' };
+    if (attempt < MODERATION_ATTEMPTS) await sleep(250 * attempt);
   }
+
+  if (failOpenEnabled()) {
+    console.warn('[Moderation] unavailable, allowing because MODERATION_FAIL_OPEN=true');
+    return { allowed: true, reason: '', source: 'unavailable' };
+  }
+
+  console.error('[Moderation] unavailable after retries, blocking request');
+  return { allowed: false, reason: '', source: 'unavailable' };
 }
 
 export function parseResponse(text: string): any[] {
@@ -149,11 +220,21 @@ export function parseResponse(text: string): any[] {
     throw new Error('Invalid questions array');
   }
 
-  if (questions.length < 50) {
-    console.warn(`[Gemini] Only ${questions.length} questions generated (minimum 50 expected)`);
+  // Output-side screening: the topic passing moderation does not guarantee every
+  // generated question is clean, and these get cached and replayed to players.
+  const { kept, removed } = filterQuestions(questions);
+  if (removed > 0) {
+    console.warn(`[Moderation] Dropped ${removed} generated question(s) containing blocked content`);
+  }
+  if (kept.length === 0) {
+    throw new Error('All generated questions were rejected by the content filter');
   }
 
-  return questions.map((q: any, index: number) => ({
+  if (kept.length < 50) {
+    console.warn(`[Gemini] Only ${kept.length} questions generated (minimum 50 expected)`);
+  }
+
+  return kept.map((q: any, index: number) => ({
     id: `q_${index}`,
     question: q.question,
     answers: q.answers,

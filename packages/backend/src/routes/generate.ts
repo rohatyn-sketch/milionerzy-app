@@ -14,6 +14,15 @@ router.post('/', authMiddleware, async (req: AuthRequest, res) => {
     // Only allow school-educational topics — block inappropriate/off-topic content.
     const moderation = await moderateTopic(className, context, imageBase64, mimeType);
     if (!moderation.allowed) {
+      // A topic we could not check is refused, but it is not the user's fault —
+      // report it as a temporary failure instead of accusing them of a bad topic.
+      if (moderation.source === 'unavailable') {
+        res.status(503).json({
+          error: 'Weryfikacja tematu jest chwilowo niedostepna. Sprobuj ponownie za chwile.',
+        });
+        return;
+      }
+
       res.status(400).json({
         error: moderation.reason
           ? `Ten temat nie nadaje sie do quizu edukacyjnego: ${moderation.reason}`
