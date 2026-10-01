@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test.describe('Class selector', () => {
   test('default class card is rendered', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test.describe('Shop backgrounds display', () => {
   test('all background items have name, description, and price — no empty cards', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test.describe('Question count in game', () => {
   test('game loads with fallback questions and shows total in header', async ({ page }) => {

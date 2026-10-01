@@ -33,7 +33,14 @@ const KEYS = {
   GAMES_WON_NO_LIFELINES: 'milionerzy_games_won_no_lifelines',
   CLASSES_REGISTRY: 'milionerzy_classes_registry',
   ACTIVE_CLASS: 'milionerzy_active_class',
+  ONBOARDING: 'milionerzy_onboarding',
 } as const;
+
+// Onboarding (first-time player guide) state:
+//   null       - never started (candidate for the tutorial)
+//   'active'   - tutorial in progress; ends when the first game finishes
+//   'done'     - tutorial finished or skipped; never shown again
+export type OnboardingState = 'active' | 'done';
 
 function getInt(key: string): number | null {
   const v = localStorage.getItem(key);
@@ -209,6 +216,13 @@ export const storage = {
   setClassesRegistry(c: QuizClass[]) { setJSON(KEYS.CLASSES_REGISTRY, c); },
   getActiveClass(): string { return localStorage.getItem(KEYS.ACTIVE_CLASS) || 'default_fizyka7'; },
   setActiveClass(id: string) { localStorage.setItem(KEYS.ACTIVE_CLASS, id); },
+
+  // Onboarding
+  getOnboarding(): OnboardingState | null {
+    const v = localStorage.getItem(KEYS.ONBOARDING);
+    return v === 'active' || v === 'done' ? v : null;
+  },
+  setOnboarding(state: OnboardingState) { localStorage.setItem(KEYS.ONBOARDING, state); },
 
   getClassQuestions(classId: string): Question[] | null {
     return getJSON<Question[]>('milionerzy_questions_' + classId);

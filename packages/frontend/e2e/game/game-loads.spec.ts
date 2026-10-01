@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test.describe('Game page loads', () => {
   test('game surface mounts with question, answers, timer, and lifelines', async ({ page }) => {
