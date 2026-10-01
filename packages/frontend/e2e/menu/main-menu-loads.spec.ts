@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test.describe('Main menu loads', () => {
   test('renders title, nav buttons, and money display', async ({ page }) => {

@@ -10,6 +10,7 @@ import { initSound, isSfxEnabled, isMusicEnabled, toggleSfx, toggleMusic } from 
 import { getStatus as getDailyStatus, startCountdown as startDailyCountdown } from './features/daily';
 import { renderPreview as renderLeaderboardPreview } from './features/leaderboard';
 import { loadCachedQuestions, loadQuestionsForClass } from './features/questions';
+import { isFirstTimePlayer, startMenuOnboarding } from './features/onboarding';
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -35,6 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateFormulasVisibility();
 
   renderClassCards(onClassUpdate);
+
+  // First-time players get a guided tour of the menu, then of their first game.
+  if (isFirstTimePlayer()) {
+    requestAnimationFrame(() => startMenuOnboarding());
+  }
 });
 
 function onClassUpdate(): void {

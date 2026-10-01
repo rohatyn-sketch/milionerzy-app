@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test.describe('Shop page loads', () => {
   test('shop surface mounts with sections and money display', async ({ page }) => {

@@ -4,7 +4,8 @@ import { GAME_CONFIG, formatMoney, getRewardPerQuestion, getPenaltyPerQuestion }
 import type { Question } from '@milionerzy/shared';
 import { isTrueFalse } from '@milionerzy/shared';
 import { applyTheme } from '../ui/theme';
-import { initKeyboard, setAnswerCallback, setNextCallback, setEscapeCallback } from '../features/keyboard';
+import { initKeyboard, setAnswerCallback, setNextCallback, setEscapeCallback, setEnabled as setKeyboardEnabled } from '../features/keyboard';
+import { startGameOnboarding, finishOnboarding } from '../features/onboarding';
 import { initStreak, resetStreak, incrementStreak, getMultiplier, isNewLevel, getDisplayInfo } from '../features/streak';
 import { getTimerForQuestion, getLevelName, getLevelColor, getFiftyRemoves } from '../features/difficulty';
 import { getDailyQuestions, isCompletedToday, markCompleted, DAILY_MONEY_MULTIPLIER } from '../features/daily';
@@ -101,13 +102,8 @@ function updateTimerDisplay(): void {
   if (els.timerText) els.timerText.textContent = `${timeLeft}s`;
 }
 
-function startTimer(): void {
+function runTimerInterval(): void {
   stopTimer();
-  const questionNum = currentQuestionIndex + 1;
-  timeLeft = getTimerForQuestion(questionNum);
-  currentMaxTime = timeLeft;
-  updateTimerDisplay();
-
   timerInterval = setInterval(() => {
     timeLeft--;
     updateTimerDisplay();
@@ -120,6 +116,26 @@ function startTimer(): void {
       handleTimeOut();
     }
   }, 1000);
+}
+
+function startTimer(): void {
+  const questionNum = currentQuestionIndex + 1;
+  timeLeft = getTimerForQuestion(questionNum);
+  currentMaxTime = timeLeft;
+  updateTimerDisplay();
+  runTimerInterval();
+}
+
+// Freeze the countdown (e.g. while the onboarding tour is open) without
+// resetting the remaining time, then resume from where it paused.
+function pauseTimer(): void {
+  stopTimer();
+}
+
+function resumeTimer(): void {
+  if (isAnswered) return;
+  updateTimerDisplay();
+  runTimerInterval();
 }
 
 function updateDifficultyIndicator(questionNum: number): void {
@@ -422,6 +438,9 @@ function endGame(): void {
   checkAllAchievements();
   els.endScreen?.classList.add('active');
   scheduleSave();
+
+  // Completing a normal game is the end of the first-time guide.
+  if (!isPracticeMode && !isDailyChallenge) finishOnboarding();
 }
 
 function useFiftyFifty(): void {
@@ -550,6 +569,9 @@ export function initGame(): void {
 function startGame(): void {
   loadCachedQuestions();
 
+  // Capture first-timer status before incrementGamesPlayed() below bumps it.
+  const wasFirstTimer = (storage.getGamesPlayed() || 0) === 0;
+
   const urlParams = new URLSearchParams(window.location.search);
   isPracticeMode = urlParams.get('practice') === 'true';
   isDailyChallenge = urlParams.get('daily') === 'true';
@@ -607,4 +629,17 @@ function startGame(): void {
   currentMoney = 0;
   resetStreak();
   loadQuestion();
+
+  // Continue the first-time guide on the game screen (normal games only).
+  // Runs when the menu tour sent us here ('active'), or when a brand-new player
+  // opened the game directly. The timer and keyboard are frozen while it's open.
+  if (!isPracticeMode && !isDailyChallenge) {
+    const state = storage.getOnboarding();
+    if (state === 'active' || (wasFirstTimer && state !== 'done')) {
+      startGameOnboarding({
+        pause: () => { pauseTimer(); setKeyboardEnabled(false); },
+        resume: () => { setKeyboardEnabled(true); resumeTimer(); },
+      });
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test.describe('Music toggle', () => {
   test('toggling music changes state and persists preference', async ({ page }) => {
