@@ -1,5 +1,6 @@
 import { storage } from '../state/storage';
 import { formatMoney } from '@milionerzy/shared';
+import { t, localeTag } from './i18n';
 
 interface LocalEntry {
   name: string;
@@ -30,7 +31,7 @@ export function addScore(score: number, name = 'Gracz'): number | null {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return new Date(iso).toLocaleDateString(localeTag(), { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function renderFull(containerId: string): void {
@@ -39,7 +40,7 @@ export function renderFull(containerId: string): void {
 
   const lb = getAll();
   if (lb.length === 0) {
-    container.innerHTML = '<p class="leaderboard-empty">Brak wynikow. Zagraj, aby pojawic sie na tablicy!</p>';
+    container.innerHTML = `<p class="leaderboard-empty">${t('lb.emptyFull', 'Brak wynikow. Zagraj, aby pojawic sie na tablicy!')}</p>`;
     return;
   }
 
@@ -65,7 +66,7 @@ export function renderPreview(containerId: string): void {
 
   const top3 = getTop(3);
   if (top3.length === 0) {
-    container.innerHTML = '<p class="leaderboard-empty">Brak wynikow</p>';
+    container.innerHTML = `<p class="leaderboard-empty">${t('lb.empty', 'Brak wynikow')}</p>`;
     return;
   }
 

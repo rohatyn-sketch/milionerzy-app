@@ -34,7 +34,11 @@ const KEYS = {
   CLASSES_REGISTRY: 'milionerzy_classes_registry',
   ACTIVE_CLASS: 'milionerzy_active_class',
   ONBOARDING: 'milionerzy_onboarding',
+  QUESTION_COUNT: 'milionerzy_question_count',
+  LANG: 'milionerzy_lang',
 } as const;
+
+export type Lang = 'pl' | 'en';
 
 // Onboarding (first-time player guide) state:
 //   null       - never started (candidate for the tutorial)
@@ -216,6 +220,14 @@ export const storage = {
   setClassesRegistry(c: QuizClass[]) { setJSON(KEYS.CLASSES_REGISTRY, c); },
   getActiveClass(): string { return localStorage.getItem(KEYS.ACTIVE_CLASS) || 'default_fizyka7'; },
   setActiveClass(id: string) { localStorage.setItem(KEYS.ACTIVE_CLASS, id); },
+
+  // UI language (default Polish).
+  getLang(): Lang { return localStorage.getItem(KEYS.LANG) === 'en' ? 'en' : 'pl'; },
+  setLang(lang: Lang) { localStorage.setItem(KEYS.LANG, lang); },
+
+  // Preferred number of questions per game (null = play the whole set).
+  getQuestionCount(): number | null { return getInt(KEYS.QUESTION_COUNT); },
+  setQuestionCount(n: number) { localStorage.setItem(KEYS.QUESTION_COUNT, Math.max(1, Math.round(n)).toString()); },
 
   // Onboarding
   getOnboarding(): OnboardingState | null {

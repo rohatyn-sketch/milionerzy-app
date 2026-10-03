@@ -1,11 +1,11 @@
 // achievements-entry.ts - Achievements page entry point
 import './css/style.css';
-import { ACHIEVEMENTS } from '@milionerzy/shared';
 import { applyTheme } from './ui/theme';
-import { storage } from './state/storage';
 import { getAllWithStatus } from './features/achievements';
+import { initI18n, t } from './features/i18n';
 
 document.addEventListener('DOMContentLoaded', () => {
+  initI18n();
   applyTheme();
   renderAchievements();
 });
@@ -45,8 +45,8 @@ function renderAchievements(): void {
     card.innerHTML = `
       <div class="achievement-icon">${achievement.unlocked ? achievement.icon : '&#128274;'}</div>
       <div class="achievement-info">
-        <h3 class="achievement-name">${achievement.name}</h3>
-        <p class="achievement-description">${achievement.description}</p>
+        <h3 class="achievement-name">${t(`ach.${achievement.id}.name`, achievement.name)}</h3>
+        <p class="achievement-description">${t(`ach.${achievement.id}.desc`, achievement.description)}</p>
         ${progressHtml}
       </div>
     `;

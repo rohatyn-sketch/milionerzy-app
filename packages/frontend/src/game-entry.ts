@@ -7,9 +7,11 @@ import { loadCachedQuestions } from './features/questions';
 import { initGame } from './game/game';
 import { initKeyboard } from './features/keyboard';
 import { initAuth, waitForAuth } from './auth/auth';
+import { initI18n } from './features/i18n';
 
 document.addEventListener('DOMContentLoaded', async () => {
   storage.init();
+  initI18n();
   initAuth({ skipRestore: true });
   applyTheme();
   initSound('game');

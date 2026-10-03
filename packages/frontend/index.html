@@ -27,16 +27,25 @@
 
             <div class="class-selector" id="class-selector"></div>
 
+            <div class="question-count-control" id="question-count-control">
+                <label class="qc-label" for="question-count-slider">
+                    <span class="qc-label-text" data-i18n="qc.label">Liczba pytan</span>
+                    <span class="qc-value" id="question-count-value">10</span>
+                </label>
+                <input type="range" id="question-count-slider" class="qc-slider" min="5" max="50" step="1" value="10">
+                <div class="qc-hint" data-i18n="qc.hint">Ile pytan w jednej grze</div>
+            </div>
+
             <div class="menu-buttons">
-                <a href="game.html" class="btn btn-primary">Graj</a>
-                <a href="game.html?practice=true" class="btn btn-practice" id="practice-btn">Cwicz <span id="practice-count"></span></a>
-                <a href="shop.html" class="btn btn-secondary">Sklep</a>
-                <button class="btn btn-help" id="formulas-btn">Wzory</button>
+                <a href="game.html" class="btn btn-primary" data-i18n="menu.play">Graj</a>
+                <a href="game.html?practice=true" class="btn btn-practice" id="practice-btn"><span data-i18n="menu.practice">Cwicz</span> <span id="practice-count"></span></a>
+                <a href="shop.html" class="btn btn-secondary" data-i18n="menu.shop">Sklep</a>
+                <button class="btn btn-help" id="formulas-btn" data-i18n="menu.formulas">Wzory</button>
             </div>
 
             <!-- Wyzwanie dnia -->
             <div class="daily-section" id="daily-section">
-                <h3 class="daily-title">Wyzwanie dnia</h3>
+                <h3 class="daily-title" data-i18n="daily.title">Wyzwanie dnia</h3>
                 <p class="daily-status" id="daily-status"></p>
                 <a href="game.html?daily=true" class="btn btn-daily" id="daily-btn">Zagraj</a>
                 <p class="daily-countdown" id="daily-countdown"></p>
@@ -44,27 +53,28 @@
 
             <!-- Tablica wynikow - podglad -->
             <div class="leaderboard-section">
-                <h3 class="leaderboard-title">Najlepsze wyniki</h3>
+                <h3 class="leaderboard-title" data-i18n="lb.title">Najlepsze wyniki</h3>
                 <div id="leaderboard-preview"></div>
             </div>
 
             <div class="money-display">
-                Twoje pieniadze: <span id="money-amount">0 PLN</span>
+                <span data-i18n="money.label">Twoje pieniadze:</span> <span id="money-amount">0 PLN</span>
             </div>
 
             <div class="stats-display" style="margin-top: 20px; color: var(--text-secondary); font-size: 0.9rem;">
-                <p>Rozegrane gry: <span id="games-played">0</span> | Wygrane: <span id="games-won">0</span> | Najlepsza seria: <span id="best-streak">0</span></p>
+                <p><span data-i18n="stats.played">Rozegrane gry:</span> <span id="games-played">0</span> | <span data-i18n="stats.won">Wygrane:</span> <span id="games-won">0</span> | <span data-i18n="stats.bestStreak">Najlepsza seria:</span> <span id="best-streak">0</span></p>
             </div>
 
             <!-- Przyciski dzwieku -->
             <div class="sound-toggles">
                 <button class="sound-toggle" id="sfx-toggle">SFX: ON</button>
                 <button class="sound-toggle" id="music-toggle">Muzyka: OFF</button>
+                <button class="sound-toggle" id="lang-toggle" title="Change language">PL</button>
             </div>
 
             <div class="code-input-container" style="margin-top: 20px;">
-                <input type="text" id="code-input" placeholder="Wpisz kod..." style="padding: 10px; border-radius: 8px; border: 2px solid var(--primary-color); background: rgba(255,255,255,0.1); color: var(--text-color); font-size: 1rem; width: 150px; text-align: center;">
-                <button id="code-btn" class="btn" style="padding: 10px 20px; margin-left: 10px;">Uzyj kodu</button>
+                <input type="text" id="code-input" placeholder="Wpisz kod..." data-i18n-placeholder="code.placeholder" style="padding: 10px; border-radius: 8px; border: 2px solid var(--primary-color); background: rgba(255,255,255,0.1); color: var(--text-color); font-size: 1rem; width: 150px; text-align: center;">
+                <button id="code-btn" class="btn" data-i18n="code.use" style="padding: 10px 20px; margin-left: 10px;">Uzyj kodu</button>
                 <p id="code-message" style="margin-top: 10px; font-size: 0.9rem;"></p>
             </div>
         </div>
@@ -148,35 +158,35 @@
     </div>
 
     <!-- Toggle konfiguracji -->
-    <button class="setup-toggle" id="setup-toggle" title="Konfiguracja pytan AI">&#9881;</button>
+    <button class="setup-toggle" id="setup-toggle" title="Konfiguracja pytan AI" data-i18n-title="setup.toggleTitle">&#9881;</button>
 
     <!-- Panel konfiguracji AI -->
     <div class="setup-panel" id="setup-panel">
       <div class="setup-panel-inner">
         <div class="setup-panel-header">
-            <h3>Dodaj nowa klase</h3>
+            <h3 data-i18n="setup.title">Dodaj nowa klase</h3>
             <button class="setup-panel-close" id="setup-panel-close">&times;</button>
         </div>
         <div class="setup-panel-body">
             <div class="setup-field">
-                <label for="class-name-input">Nazwa przedmiotu / klasy</label>
-                <input type="text" id="class-name-input" placeholder="np. Biologia - Klasa 8">
+                <label for="class-name-input" data-i18n="setup.nameLabel">Nazwa przedmiotu / klasy</label>
+                <input type="text" id="class-name-input" placeholder="np. Biologia - Klasa 8" data-i18n-placeholder="setup.namePh">
             </div>
             <div class="setup-field">
-                <label for="class-context-input">Zakres materialu (opcjonalnie)</label>
-                <textarea id="class-context-input" placeholder="np. Rozdzial 3: Uklad krwionosny, serce, krew..." rows="3"></textarea>
+                <label for="class-context-input" data-i18n="setup.contextLabel">Zakres materialu (opcjonalnie)</label>
+                <textarea id="class-context-input" placeholder="np. Rozdzial 3: Uklad krwionosny, serce, krew..." data-i18n-placeholder="setup.contextPh" rows="3"></textarea>
             </div>
             <div class="setup-field">
-                <label>Zdjecie kryteriow sukcesu (opcjonalnie)</label>
+                <label data-i18n="setup.imageLabel">Zdjecie kryteriow sukcesu (opcjonalnie)</label>
                 <div class="upload-area" id="upload-area">
                     <div class="upload-icon">&#128247;</div>
-                    <div class="upload-text">Kliknij lub przeciagnij zdjecie</div>
-                    <div class="upload-hint">Max 4MB - JPG, PNG</div>
+                    <div class="upload-text" data-i18n="upload.text">Kliknij lub przeciagnij zdjecie</div>
+                    <div class="upload-hint" data-i18n="upload.hint">Max 4MB - JPG, PNG</div>
                 </div>
                 <input type="file" id="image-upload" accept="image/jpeg,image/png" style="display: none;">
             </div>
-            <p class="auth-notice" id="auth-notice">Zaloguj sie kontem Google, aby generowac pytania.</p>
-            <button class="btn-generate" id="generate-btn">Generuj pytania</button>
+            <p class="auth-notice" id="auth-notice" data-i18n="setup.authNotice">Zaloguj sie kontem Google, aby generowac pytania.</p>
+            <button class="btn-generate" id="generate-btn" data-i18n="setup.generate">Generuj pytania</button>
             <div class="generate-status" id="generate-status"></div>
         </div>
       </div>
@@ -185,8 +195,8 @@
     <!-- Loading overlay -->
     <div class="loading-overlay" id="loading-overlay">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Generowanie pytan...</div>
-        <div class="loading-subtext">To moze potrwac do 30 sekund</div>
+        <div class="loading-text" data-i18n="loading.text">Generowanie pytan...</div>
+        <div class="loading-subtext" data-i18n="loading.subtext">To moze potrwac do 30 sekund</div>
     </div>
 
     <script type="module" src="src/main.ts"></script>

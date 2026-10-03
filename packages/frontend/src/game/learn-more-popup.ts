@@ -1,6 +1,7 @@
 import type { Question } from '@milionerzy/shared';
 import { generatePodcast, type PodcastInfo } from '../api/podcast.api';
 import { showAudioPlayer } from './audio-player';
+import { t } from '../features/i18n';
 
 let toastEl: HTMLElement | null = null;
 let isGenerating = false;
@@ -9,13 +10,15 @@ let dismissedForSession = false;
 let onPodcastGenerated: ((questionText: string, podcast: PodcastInfo) => void) | null = null;
 let autoHideTimer: ReturnType<typeof setTimeout> | null = null;
 
-const LOADING_MESSAGES = [
-  'Szukam zrodel na ten temat...',
-  'Przygotowuje material edukacyjny...',
-  'Pisze scenariusz podcastu...',
-  'Nagrywam podcast...',
-  'Juz prawie gotowe...',
-];
+function loadingMessages(): string[] {
+  return [
+    t('learn.msg1', 'Szukam zrodel na ten temat...'),
+    t('learn.msg2', 'Przygotowuje material edukacyjny...'),
+    t('learn.msg3', 'Pisze scenariusz podcastu...'),
+    t('learn.msg4', 'Nagrywam podcast...'),
+    t('learn.msg5', 'Juz prawie gotowe...'),
+  ];
+}
 
 const ROBOT_FRAMES = [
   '(o_o)',
@@ -30,40 +33,42 @@ const ROBOT_FRAMES = [
 
 function createToastHTML(question: Question, wrongCount: number): string {
   const message = wrongCount >= 3
-    ? 'Ten temat Ci nie odpuszcza!'
-    : 'Znow ten temat?';
+    ? t('learn.stickyTopic', 'Ten temat Ci nie odpuszcza!')
+    : t('learn.againTopic', 'Znow ten temat?');
+  const topic = `<em>${question.category || t('learn.thisTopic', 'tym temacie')}</em>`;
 
   return `
     <div class="learn-toast" id="learn-toast">
       <div class="learn-toast-content">
         <div class="learn-toast-icon">🎧</div>
         <div class="learn-toast-text">
-          <p class="learn-toast-message"><strong>${message}</strong> Wygenerowac podcast o <em>${question.category || 'tym temacie'}</em>?</p>
+          <p class="learn-toast-message"><strong>${message}</strong> ${t('learn.offer', 'Wygenerowac podcast o {topic}?', { topic })}</p>
         </div>
         <div class="learn-toast-actions">
-          <button class="learn-toast-btn learn-toast-yes" id="learn-toast-yes" title="Generuj podcast">Tak!</button>
-          <button class="learn-toast-btn learn-toast-no" id="learn-toast-no" title="Nie teraz">Nie</button>
-          <button class="learn-toast-btn learn-toast-stop" id="learn-toast-stop" title="Nie pokazuj wiecej w tej sesji">Nie pytaj</button>
+          <button class="learn-toast-btn learn-toast-yes" id="learn-toast-yes" title="${t('learn.yesTitle', 'Generuj podcast')}">${t('learn.yes', 'Tak!')}</button>
+          <button class="learn-toast-btn learn-toast-no" id="learn-toast-no" title="${t('learn.noTitle', 'Nie teraz')}">${t('learn.no', 'Nie')}</button>
+          <button class="learn-toast-btn learn-toast-stop" id="learn-toast-stop" title="${t('learn.stopTitle', 'Nie pokazuj wiecej w tej sesji')}">${t('learn.stop', 'Nie pytaj')}</button>
         </div>
-        <button class="learn-toast-close" id="learn-toast-close" title="Zamknij">&times;</button>
+        <button class="learn-toast-close" id="learn-toast-close" title="${t('learn.closeTitle', 'Zamknij')}">&times;</button>
       </div>
       <div class="learn-toast-loading" id="learn-toast-loading" style="display: none;">
         <div class="learn-toast-robot" id="learn-toast-robot">(o_o)</div>
         <div class="learn-toast-loading-info">
-          <p class="learn-toast-loading-text" id="learn-toast-loading-text">${LOADING_MESSAGES[0]}</p>
+          <p class="learn-toast-loading-text" id="learn-toast-loading-text">${loadingMessages()[0]}</p>
           <div class="learn-toast-progress"><div class="learn-toast-progress-bar" id="learn-toast-progress-bar"></div></div>
         </div>
-        <button class="learn-toast-btn learn-toast-cancel" id="learn-toast-cancel">Anuluj</button>
+        <button class="learn-toast-btn learn-toast-cancel" id="learn-toast-cancel">${t('learn.cancel', 'Anuluj')}</button>
       </div>
     </div>
   `;
 }
 
 function cycleLoadingMessages(textEl: HTMLElement): ReturnType<typeof setInterval> {
+  const msgs = loadingMessages();
   let idx = 0;
   return setInterval(() => {
-    idx = (idx + 1) % LOADING_MESSAGES.length;
-    textEl.textContent = LOADING_MESSAGES[idx];
+    idx = (idx + 1) % msgs.length;
+    textEl.textContent = msgs[idx];
   }, 4000);
 }
 
@@ -164,7 +169,7 @@ async function handleGenerate(question: Question): Promise<void> {
       contentEl.innerHTML = `
         <div class="learn-toast-icon">😔</div>
         <div class="learn-toast-text">
-          <p class="learn-toast-message">Nie udalo sie wygenerowac podcastu.</p>
+          <p class="learn-toast-message">${t('learn.failed', 'Nie udalo sie wygenerowac podcastu.')}</p>
         </div>
         <button class="learn-toast-close" id="learn-toast-close-err">&times;</button>
       `;

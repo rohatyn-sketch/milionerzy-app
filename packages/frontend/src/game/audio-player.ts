@@ -1,3 +1,5 @@
+import { t } from '../features/i18n';
+
 let playerEl: HTMLElement | null = null;
 let audioEl: HTMLAudioElement | null = null;
 
@@ -16,14 +18,14 @@ function createPlayerHTML(title: string): string {
           <h3 class="audio-player-title">${title}</h3>
         </div>
         <div class="audio-player-controls">
-          <button class="audio-player-btn" id="audio-play-btn" title="Odtwarzaj/Pauza">▶</button>
+          <button class="audio-player-btn" id="audio-play-btn" title="${t('audio.playPause', 'Odtwarzaj/Pauza')}">▶</button>
           <div class="audio-player-progress-wrap">
             <input type="range" class="audio-player-progress" id="audio-progress" min="0" max="100" value="0" step="0.1">
             <div class="audio-player-time">
               <span id="audio-current-time">0:00</span> / <span id="audio-duration">0:00</span>
             </div>
           </div>
-          <select class="audio-player-speed" id="audio-speed" title="Predkosc odtwarzania">
+          <select class="audio-player-speed" id="audio-speed" title="${t('audio.speed', 'Predkosc odtwarzania')}">
             <option value="0.75">0.75x</option>
             <option value="1" selected>1x</option>
             <option value="1.25">1.25x</option>
@@ -31,10 +33,10 @@ function createPlayerHTML(title: string): string {
           </select>
         </div>
         <div class="audio-player-transcript-toggle">
-          <button class="btn btn-secondary audio-player-transcript-btn" id="audio-transcript-btn">Pokaz transkrypt</button>
+          <button class="btn btn-secondary audio-player-transcript-btn" id="audio-transcript-btn">${t('audio.showTranscript', 'Pokaz transkrypt')}</button>
         </div>
         <div class="audio-player-transcript" id="audio-transcript" style="display: none;"></div>
-        <button class="btn btn-primary audio-player-close" id="audio-player-close">Wroc do cwiczen</button>
+        <button class="btn btn-primary audio-player-close" id="audio-player-close">${t('audio.back', 'Wroc do cwiczen')}</button>
       </div>
     </div>
   `;
@@ -107,7 +109,7 @@ export function showAudioPlayer(audioUrl: string, title: string, transcript?: st
     transcriptBtn.addEventListener('click', () => {
       const isHidden = transcriptEl.style.display === 'none';
       transcriptEl.style.display = isHidden ? 'block' : 'none';
-      transcriptBtn.textContent = isHidden ? 'Ukryj transkrypt' : 'Pokaz transkrypt';
+      transcriptBtn.textContent = isHidden ? t('audio.hideTranscript', 'Ukryj transkrypt') : t('audio.showTranscript', 'Pokaz transkrypt');
     });
   } else {
     transcriptBtn.style.display = 'none';

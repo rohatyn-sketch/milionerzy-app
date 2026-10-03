@@ -2,6 +2,7 @@ import { storage } from '../state/storage';
 import { ACHIEVEMENTS } from '@milionerzy/shared';
 import type { AchievementProgress } from '@milionerzy/shared';
 import { playAchievement } from './sound';
+import { t } from './i18n';
 
 interface AchievementStats {
   gamesWon: number;
@@ -71,15 +72,15 @@ function unlock(id: string): boolean {
   return true;
 }
 
-function showNotification(achievement: { icon: string; name: string; description: string }): void {
+function showNotification(achievement: { id: string; icon: string; name: string; description: string }): void {
   const el = document.createElement('div');
   el.className = 'achievement-notification';
   el.innerHTML = `
     <div class="achievement-icon">${achievement.icon}</div>
     <div class="achievement-info">
-      <div class="achievement-title">Osiagniecie odblokowane!</div>
-      <div class="achievement-name">${achievement.name}</div>
-      <div class="achievement-desc">${achievement.description}</div>
+      <div class="achievement-title">${t('ach.unlockedNotif', 'Osiagniecie odblokowane!')}</div>
+      <div class="achievement-name">${t(`ach.${achievement.id}.name`, achievement.name)}</div>
+      <div class="achievement-desc">${t(`ach.${achievement.id}.desc`, achievement.description)}</div>
     </div>
   `;
   document.body.appendChild(el);

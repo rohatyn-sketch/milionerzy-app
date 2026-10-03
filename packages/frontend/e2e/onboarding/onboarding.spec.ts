@@ -10,7 +10,7 @@ test.describe('First-time player onboarding', () => {
     const overlay = page.locator('.tour-overlay');
     await expect(overlay).toBeVisible();
     await expect(page.locator('.tour-title')).toContainText('Witaj');
-    await expect(page.locator('.tour-counter')).toHaveText('1 / 6');
+    await expect(page.locator('.tour-counter')).toHaveText('1 / 7');
   });
 
   test('skipping the tour marks it done and it does not reappear', async ({ page }) => {
@@ -50,13 +50,13 @@ test.describe('First-time player onboarding', () => {
     await page.goto('/');
     await expect(page.locator('.tour-overlay')).toBeVisible();
 
-    // Advance through the 6 menu steps; the final button navigates to the game.
+    // Advance through the 7 menu steps; the final button navigates to the game.
     const next = page.locator('.tour-next');
-    for (let step = 1; step <= 5; step++) {
-      await expect(page.locator('.tour-counter')).toHaveText(`${step} / 6`);
+    for (let step = 1; step <= 6; step++) {
+      await expect(page.locator('.tour-counter')).toHaveText(`${step} / 7`);
       await next.click();
     }
-    await expect(page.locator('.tour-counter')).toHaveText('6 / 6');
+    await expect(page.locator('.tour-counter')).toHaveText('7 / 7');
     await expect(next).toHaveText('Graj teraz');
 
     await Promise.all([page.waitForURL('**/game.html'), next.click()]);
