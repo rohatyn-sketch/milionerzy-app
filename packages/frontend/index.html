@@ -27,6 +27,15 @@
 
             <div class="class-selector" id="class-selector"></div>
 
+            <div class="question-count-control" id="question-count-control">
+                <label class="qc-label" for="question-count-slider">
+                    <span class="qc-label-text">Liczba pytan</span>
+                    <span class="qc-value" id="question-count-value">10</span>
+                </label>
+                <input type="range" id="question-count-slider" class="qc-slider" min="5" max="50" step="1" value="10">
+                <div class="qc-hint">Ile pytan w jednej grze</div>
+            </div>
+
             <div class="menu-buttons">
                 <a href="game.html" class="btn btn-primary">Graj</a>
                 <a href="game.html?practice=true" class="btn btn-practice" id="practice-btn">Cwicz <span id="practice-count"></span></a>

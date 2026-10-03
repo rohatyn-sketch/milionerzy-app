@@ -605,9 +605,15 @@ function startGame(): void {
       return;
     }
   } else {
-    // Use ALL available questions for this class in one round
+    // Play the number of questions the player picked on the menu (random pick),
+    // or the whole set when they haven't chosen one.
     const allQ = getQuestions();
-    questions = allQ.map(q => shuffleAnswers(q));
+    const want = storage.getQuestionCount();
+    if (want && want < allQ.length) {
+      questions = getRandomQuestions(want).map(q => shuffleAnswers(q));
+    } else {
+      questions = allQ.map(q => shuffleAnswers(q));
+    }
     storage.incrementGamesPlayed();
   }
 

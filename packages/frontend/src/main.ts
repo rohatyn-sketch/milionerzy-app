@@ -9,7 +9,7 @@ import { initAuth, isLoggedIn } from './auth/auth';
 import { initSound, isSfxEnabled, isMusicEnabled, toggleSfx, toggleMusic } from './features/sound';
 import { getStatus as getDailyStatus, startCountdown as startDailyCountdown } from './features/daily';
 import { renderPreview as renderLeaderboardPreview } from './features/leaderboard';
-import { loadCachedQuestions, loadQuestionsForClass } from './features/questions';
+import { loadCachedQuestions, loadQuestionsForClass, getQuestions } from './features/questions';
 import { isFirstTimePlayer, startMenuOnboarding } from './features/onboarding';
 
 // Initialize on DOM ready
@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSetupPanel();
   setupImageUpload();
   setupGenerateButton(onClassUpdate);
+  setupQuestionCount();
   updateSubtitle();
   updateFormulasVisibility();
 
@@ -48,6 +49,55 @@ function onClassUpdate(): void {
   updateFormulasVisibility();
   updatePracticeButton();
   updateMoneyDisplay();
+  updateQuestionCountSlider();
+}
+
+const QUESTION_COUNT_MIN = 5;
+
+// Wire the "how many questions per game" slider. The max follows the active
+// class's available questions; the chosen value is stored and read by the game.
+function setupQuestionCount(): void {
+  const slider = document.getElementById('question-count-slider') as HTMLInputElement | null;
+  if (!slider) return;
+
+  slider.addEventListener('input', () => {
+    storage.setQuestionCount(parseInt(slider.value, 10));
+    updateQuestionCountValue();
+  });
+
+  updateQuestionCountSlider();
+}
+
+function updateQuestionCountSlider(): void {
+  const slider = document.getElementById('question-count-slider') as HTMLInputElement | null;
+  const control = document.getElementById('question-count-control');
+  if (!slider || !control) return;
+
+  const available = getQuestions().length;
+  // Nothing to choose from (shouldn't happen with the bundled set), hide it.
+  if (available <= QUESTION_COUNT_MIN) {
+    control.style.display = 'none';
+    return;
+  }
+  control.style.display = '';
+
+  const min = QUESTION_COUNT_MIN;
+  const max = available;
+  slider.min = String(min);
+  slider.max = String(max);
+
+  // Default to the full set (preserves the original "play everything" behaviour)
+  // until the player picks a number; always clamp into the current range.
+  const stored = storage.getQuestionCount();
+  const value = Math.min(max, Math.max(min, stored ?? max));
+  slider.value = String(value);
+  updateQuestionCountValue();
+}
+
+function updateQuestionCountValue(): void {
+  const slider = document.getElementById('question-count-slider') as HTMLInputElement | null;
+  const valueEl = document.getElementById('question-count-value');
+  if (slider && valueEl) valueEl.textContent = slider.value;
 }
 
 function updateMoneyDisplay(): void {

@@ -247,6 +247,11 @@ const MENU_STEPS: TourStep[] = [
     text: 'Tutaj wybierasz klase lub przedmiot, z ktorego chcesz grac. Po zalogowaniu mozesz tez dodac wlasny zestaw pytan.',
   },
   {
+    target: '#question-count-control',
+    title: 'Liczba pytan',
+    text: 'Suwakiem ustawiasz, ile pytan chcesz w jednej grze. Mniej pytan to szybsza gra.',
+  },
+  {
     target: '.menu-buttons .btn-primary',
     title: 'Zagraj',
     text: 'Przycisk "Graj" rozpoczyna gre z pytaniami z wybranego przedmiotu.',
