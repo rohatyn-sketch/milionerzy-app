@@ -2,6 +2,7 @@ import { storage } from '../state/storage';
 import { generateQuestions } from '../api/generate.api';
 import { setQuestions } from '../features/questions';
 import { renderClassCards } from './class-selector';
+import { t } from '../features/i18n';
 
 let uploadedImageBase64: string | null = null;
 let uploadedImageMimeType: string | null = null;
@@ -71,11 +72,11 @@ export function setupImageUpload(): void {
 
 function handleImageFile(file: File, uploadArea: HTMLElement): void {
   if (!['image/jpeg', 'image/png'].includes(file.type)) {
-    alert('Dozwolone formaty: JPG, PNG');
+    alert(t('upload.formats', 'Dozwolone formaty: JPG, PNG'));
     return;
   }
   if (file.size > 4 * 1024 * 1024) {
-    alert('Maksymalny rozmiar pliku: 4MB');
+    alert(t('upload.maxSize', 'Maksymalny rozmiar pliku: 4MB'));
     return;
   }
 
@@ -92,8 +93,8 @@ function handleImageFile(file: File, uploadArea: HTMLElement): void {
 function showImagePreview(uploadArea: HTMLElement, dataUrl: string): void {
   uploadArea.classList.add('has-image');
   uploadArea.innerHTML = `
-    <button class="upload-remove" title="Usun zdjecie">&times;</button>
-    <img src="${dataUrl}" class="upload-preview" alt="Podglad">
+    <button class="upload-remove" title="${t('upload.remove', 'Usun zdjecie')}">&times;</button>
+    <img src="${dataUrl}" class="upload-preview" alt="${t('upload.previewAlt', 'Podglad')}">
   `;
   uploadArea.querySelector('.upload-remove')!.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -107,8 +108,8 @@ function clearImage(uploadArea: HTMLElement): void {
   uploadArea.classList.remove('has-image');
   uploadArea.innerHTML = `
     <div class="upload-icon">&#128247;</div>
-    <div class="upload-text">Kliknij lub przeciagnij zdjecie</div>
-    <div class="upload-hint">Max 4MB - JPG, PNG</div>
+    <div class="upload-text">${t('upload.text', 'Kliknij lub przeciagnij zdjecie')}</div>
+    <div class="upload-hint">${t('upload.hint', 'Max 4MB - JPG, PNG')}</div>
   `;
 }
 
@@ -126,7 +127,7 @@ export function setupGenerateButton(onGenerated?: () => void): void {
     const context = contextInput.value.trim();
 
     if (!className) {
-      if (statusEl) { statusEl.textContent = 'Wprowadz nazwe przedmiotu / klasy'; statusEl.className = 'generate-status error'; }
+      if (statusEl) { statusEl.textContent = t('setup.enterName', 'Wprowadz nazwe przedmiotu / klasy'); statusEl.className = 'generate-status error'; }
       return;
     }
 
@@ -169,7 +170,7 @@ export function setupGenerateButton(onGenerated?: () => void): void {
       const uploadArea = document.getElementById('upload-area');
       if (uploadArea) clearImage(uploadArea);
 
-      if (statusEl) { statusEl.textContent = `Wygenerowano ${questions.length} pytan!`; statusEl.className = 'generate-status success'; }
+      if (statusEl) { statusEl.textContent = t('setup.generatedN', 'Wygenerowano {n} pytan!', { n: questions.length }); statusEl.className = 'generate-status success'; }
       onGenerated?.();
 
       const toggleBtn = document.getElementById('setup-toggle');

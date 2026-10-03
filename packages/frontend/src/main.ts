@@ -11,10 +11,12 @@ import { getStatus as getDailyStatus, startCountdown as startDailyCountdown } fr
 import { renderPreview as renderLeaderboardPreview } from './features/leaderboard';
 import { loadCachedQuestions, loadQuestionsForClass, getQuestions } from './features/questions';
 import { isFirstTimePlayer, startMenuOnboarding } from './features/onboarding';
+import { initI18n, t, toggleLang, getLang } from './features/i18n';
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   storage.init();
+  initI18n();
   initAuth();
   initSound();
   loadCachedQuestions();
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFormulasModal();
   setupCodeInput();
   setupSoundToggles();
+  setupLangToggle();
   setupDailyChallenge();
   setupLeaderboardPreview();
 
@@ -122,7 +125,7 @@ function updatePracticeButton(): void {
   if (!isLoggedIn()) {
     count.textContent = '(0)';
     btn.classList.add('disabled');
-    btn.title = 'Zaloguj sie, aby korzystac z trybu cwiczen';
+    btn.title = t('practice.loginReq', 'Zaloguj sie, aby korzystac z trybu cwiczen');
     return;
   }
 
@@ -165,11 +168,11 @@ function setupCodeInput(): void {
       storage.setMoney((storage.getMoney() || 0) + 1000000);
       updateMoneyDisplay();
       msg.style.color = '#4CAF50';
-      msg.textContent = 'Kod poprawny! Otrzymujesz 1 000 000 PLN!';
+      msg.textContent = t('code.ok', 'Kod poprawny! Otrzymujesz 1 000 000 PLN!');
       input.value = '';
     } else {
       msg.style.color = '#f44336';
-      msg.textContent = 'Niepoprawny kod!';
+      msg.textContent = t('code.bad', 'Niepoprawny kod!');
     }
     setTimeout(() => { msg.textContent = ''; }, 3000);
   });
@@ -185,25 +188,36 @@ function setupSoundToggles(): void {
 
   if (sfxToggle) {
     const sfxOn = isSfxEnabled();
-    sfxToggle.textContent = sfxOn ? 'SFX: ON' : 'SFX: OFF';
+    sfxToggle.textContent = sfxOn ? t('sfx.on', 'SFX: ON') : t('sfx.off', 'SFX: OFF');
     sfxToggle.classList.toggle('active', sfxOn);
     sfxToggle.addEventListener('click', () => {
       const enabled = toggleSfx();
-      sfxToggle.textContent = enabled ? 'SFX: ON' : 'SFX: OFF';
+      sfxToggle.textContent = enabled ? t('sfx.on', 'SFX: ON') : t('sfx.off', 'SFX: OFF');
       sfxToggle.classList.toggle('active', enabled);
     });
   }
 
   if (musicToggle) {
     const musicOn = isMusicEnabled();
-    musicToggle.textContent = musicOn ? 'Muzyka: ON' : 'Muzyka: OFF';
+    musicToggle.textContent = musicOn ? t('music.on', 'Muzyka: ON') : t('music.off', 'Muzyka: OFF');
     musicToggle.classList.toggle('active', musicOn);
     musicToggle.addEventListener('click', () => {
       const enabled = toggleMusic();
-      musicToggle.textContent = enabled ? 'Muzyka: ON' : 'Muzyka: OFF';
+      musicToggle.textContent = enabled ? t('music.on', 'Muzyka: ON') : t('music.off', 'Muzyka: OFF');
       musicToggle.classList.toggle('active', enabled);
     });
   }
+}
+
+// Language switcher: shows the current language; clicking flips PL<->EN and
+// reloads so the whole UI re-renders (see i18n.toggleLang).
+function setupLangToggle(): void {
+  const btn = document.getElementById('lang-toggle');
+  if (!btn) return;
+  btn.textContent = getLang().toUpperCase();
+  btn.classList.toggle('active', getLang() === 'en');
+  btn.title = t('lang.toggleTitle', 'Zmien jezyk');
+  btn.addEventListener('click', () => toggleLang());
 }
 
 function setupDailyChallenge(): void {
@@ -216,16 +230,16 @@ function setupDailyChallenge(): void {
   const status = getDailyStatus();
 
   if (status.completed) {
-    if (dailyBtn) { dailyBtn.classList.add('disabled'); dailyBtn.textContent = 'Ukonczone!'; }
-    if (statusEl) statusEl.textContent = 'Wyzwanie ukonczone! Nastepne za:';
+    if (dailyBtn) { dailyBtn.classList.add('disabled'); dailyBtn.textContent = t('daily.done', 'Ukonczone!'); }
+    if (statusEl) statusEl.textContent = t('daily.completedMsg', 'Wyzwanie ukonczone! Nastepne za:');
     if (countdown) startDailyCountdown('daily-countdown');
   } else {
     if (dailyBtn) {
       dailyBtn.classList.remove('disabled');
-      dailyBtn.textContent = `Zagraj (${status.questionsCount} pytan)`;
+      dailyBtn.textContent = t('daily.playN', 'Zagraj ({n} pytan)', { n: status.questionsCount });
       dailyBtn.href = 'game.html?daily=true';
     }
-    if (statusEl) statusEl.innerHTML = `Bonus: <span class="bonus">x${status.multiplier} PLN</span>`;
+    if (statusEl) statusEl.innerHTML = `${t('daily.bonus', 'Bonus:')} <span class="bonus">x${status.multiplier} PLN</span>`;
     if (countdown) countdown.textContent = '';
   }
 }
@@ -237,7 +251,7 @@ function setupLeaderboardPreview(): void {
 function updateSubtitle(): void {
   const el = document.getElementById('subtitle-text');
   if (!el) return;
-  el.textContent = 'Wybierz klase i graj!';
+  el.textContent = t('menu.subtitle', 'Wybierz klase i graj!');
 }
 
 function updateFormulasVisibility(): void {

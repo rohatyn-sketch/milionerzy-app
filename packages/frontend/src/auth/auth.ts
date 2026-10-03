@@ -10,6 +10,7 @@ import { login as apiLogin } from '../api/auth.api';
 import { loadProgress, saveProgress } from '../api/progress.api';
 import { storage } from '../state/storage';
 import { scheduleSave } from '../state/sync';
+import { t } from '../features/i18n';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -54,7 +55,7 @@ export async function signIn(): Promise<void> {
       console.warn('[Auth] Logowanie przerwane:', err.code);
     } else {
       console.error('[Auth] Blad logowania:', err.message);
-      alert('Blad logowania: ' + err.message);
+      alert(t('auth.loginError', 'Blad logowania: ') + err.message);
     }
   } finally {
     signInInProgress = false;
@@ -139,7 +140,7 @@ export async function updateUI(): Promise<void> {
       <div class="auth-user">
         <img src="${currentUser.photoURL || ''}" alt="" class="auth-avatar" referrerpolicy="no-referrer">
         <span class="auth-name">${currentUser.displayName || ''}</span>
-        <button class="auth-logout-btn" id="logout-btn">Wyloguj</button>
+        <button class="auth-logout-btn" id="logout-btn">${t('auth.logout', 'Wyloguj')}</button>
       </div>
     `;
     document.getElementById('logout-btn')?.addEventListener('click', () => {
@@ -154,9 +155,9 @@ export async function updateUI(): Promise<void> {
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
         </svg>
-        Zaloguj przez Google
+        ${t('auth.signIn', 'Zaloguj przez Google')}
       </button>
-      <p class="auth-hint">Zaloguj sie, aby zapisac postepy i tworzyc nowe klasy</p>
+      <p class="auth-hint">${t('auth.hint', 'Zaloguj sie, aby zapisac postepy i tworzyc nowe klasy')}</p>
     `;
     document.getElementById('google-signin-btn')?.addEventListener('click', () => signIn());
   }
@@ -166,7 +167,7 @@ export async function updateUI(): Promise<void> {
   const authNotice = document.getElementById('auth-notice');
   if (generateBtn) {
     generateBtn.disabled = !isLoggedIn();
-    generateBtn.title = isLoggedIn() ? '' : 'Zaloguj sie, aby generowac pytania';
+    generateBtn.title = isLoggedIn() ? '' : t('setup.genLoginTitle', 'Zaloguj sie, aby generowac pytania');
   }
   if (authNotice) {
     authNotice.style.display = isLoggedIn() ? 'none' : 'block';
@@ -183,7 +184,7 @@ export async function updateUI(): Promise<void> {
     if (!isLoggedIn()) {
       practiceCount.textContent = '(0)';
       practiceBtn.classList.add('disabled');
-      practiceBtn.title = 'Zaloguj sie, aby korzystac z trybu cwiczen';
+      practiceBtn.title = t('practice.loginReq', 'Zaloguj sie, aby korzystac z trybu cwiczen');
     } else {
       practiceBtn.title = '';
       const count = storage.getIncorrectCount();

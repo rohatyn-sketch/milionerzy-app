@@ -1,4 +1,5 @@
 import { storage } from '../state/storage';
+import { t } from './i18n';
 
 // First-time player guide.
 //
@@ -79,7 +80,7 @@ class Tour {
       <h3 class="tour-title"></h3>
       <p class="tour-text"></p>
       <div class="tour-footer">
-        <button type="button" class="tour-skip">Pomin samouczek</button>
+        <button type="button" class="tour-skip">${t('onb.skip', 'Pomin samouczek')}</button>
         <div class="tour-nav">
           <span class="tour-counter"></span>
           <button type="button" class="tour-next">Dalej</button>
@@ -123,7 +124,7 @@ class Tour {
     this.textEl.textContent = step.text;
     this.counterEl.textContent = `${i + 1} / ${this.steps.length}`;
     const isLast = i === this.steps.length - 1;
-    this.nextBtn.textContent = step.nextLabel || (isLast ? 'Zakoncz' : 'Dalej');
+    this.nextBtn.textContent = step.nextLabel || (isLast ? t('onb.finish', 'Zakoncz') : t('onb.next', 'Dalej'));
 
     Array.from(this.dotsEl.children).forEach((dot, di) => {
       dot.classList.toggle('active', di === i);
@@ -236,77 +237,81 @@ class Tour {
 
 // --- Menu tour -------------------------------------------------------------
 
-const MENU_STEPS: TourStep[] = [
-  {
-    title: 'Witaj w Milionerzy!',
-    text: 'To gra, w ktorej odpowiadasz na pytania i zdobywasz pieniadze. Pokazemy Ci w kilku krokach, jak grac.',
-  },
-  {
-    target: '#class-selector',
-    title: 'Wybierz przedmiot',
-    text: 'Tutaj wybierasz klase lub przedmiot, z ktorego chcesz grac. Po zalogowaniu mozesz tez dodac wlasny zestaw pytan.',
-  },
-  {
-    target: '#question-count-control',
-    title: 'Liczba pytan',
-    text: 'Suwakiem ustawiasz, ile pytan chcesz w jednej grze. Mniej pytan to szybsza gra.',
-  },
-  {
-    target: '.menu-buttons .btn-primary',
-    title: 'Zagraj',
-    text: 'Przycisk "Graj" rozpoczyna gre z pytaniami z wybranego przedmiotu.',
-  },
-  {
-    target: '.money-display',
-    title: 'Twoje pieniadze',
-    text: 'Za poprawne odpowiedzi zdobywasz pieniadze. Mozesz je wydac w sklepie na kola ratunkowe i motywy.',
-  },
-  {
-    target: '#practice-btn',
-    title: 'Tryb cwiczen',
-    text: 'Pytania, w ktorych sie pomylisz, trafiaja tutaj — mozesz je potem przecwiczyc (po zalogowaniu).',
-  },
-  {
-    title: 'Zagrajmy!',
-    text: 'To wszystko, co musisz wiedziec na start. Kliknij ponizej, aby rozpoczac swoja pierwsza gre — dokonczymy samouczek w trakcie.',
-    nextLabel: 'Graj teraz',
-  },
-];
+function menuSteps(): TourStep[] {
+  return [
+    {
+      title: t('onb.welcome.title', 'Witaj w Milionerzy!'),
+      text: t('onb.welcome.text', 'To gra, w ktorej odpowiadasz na pytania i zdobywasz pieniadze. Pokazemy Ci w kilku krokach, jak grac.'),
+    },
+    {
+      target: '#class-selector',
+      title: t('onb.class.title', 'Wybierz przedmiot'),
+      text: t('onb.class.text', 'Tutaj wybierasz klase lub przedmiot, z ktorego chcesz grac. Po zalogowaniu mozesz tez dodac wlasny zestaw pytan.'),
+    },
+    {
+      target: '#question-count-control',
+      title: t('onb.count.title', 'Liczba pytan'),
+      text: t('onb.count.text', 'Suwakiem ustawiasz, ile pytan chcesz w jednej grze. Mniej pytan to szybsza gra.'),
+    },
+    {
+      target: '.menu-buttons .btn-primary',
+      title: t('onb.play.title', 'Zagraj'),
+      text: t('onb.play.text', 'Przycisk "Graj" rozpoczyna gre z pytaniami z wybranego przedmiotu.'),
+    },
+    {
+      target: '.money-display',
+      title: t('onb.money.title', 'Twoje pieniadze'),
+      text: t('onb.money.text', 'Za poprawne odpowiedzi zdobywasz pieniadze. Mozesz je wydac w sklepie na kola ratunkowe i motywy.'),
+    },
+    {
+      target: '#practice-btn',
+      title: t('onb.practice.title', 'Tryb cwiczen'),
+      text: t('onb.practice.text', 'Pytania, w ktorych sie pomylisz, trafiaja tutaj — mozesz je potem przecwiczyc (po zalogowaniu).'),
+    },
+    {
+      title: t('onb.final.title', 'Zagrajmy!'),
+      text: t('onb.final.text', 'To wszystko, co musisz wiedziec na start. Kliknij ponizej, aby rozpoczac swoja pierwsza gre — dokonczymy samouczek w trakcie.'),
+      nextLabel: t('onb.final.cta', 'Graj teraz'),
+    },
+  ];
+}
 
 // --- Game tour -------------------------------------------------------------
 
-const GAME_STEPS: TourStep[] = [
-  {
-    target: '.question-container',
-    title: 'Pytanie',
-    text: 'Tu pojawia sie pytanie. Przeczytaj je uwaznie — zaraz wybierzesz odpowiedz.',
-  },
-  {
-    target: '#answers-container',
-    title: 'Odpowiedzi',
-    text: 'Kliknij jedna z odpowiedzi. Mozesz tez uzyc klawiszy A/B/C/D lub 1/2/3/4.',
-  },
-  {
-    target: '.timer-container',
-    title: 'Czas',
-    text: 'Na kazde pytanie masz ograniczony czas. Gdy pasek sie skonczy, pytanie przepada.',
-  },
-  {
-    target: '.lifelines-container',
-    title: 'Kola ratunkowe',
-    text: '50:50 usuwa bledne odpowiedzi, "Pomin" przeskakuje pytanie, a "+Czas" dodaje sekundy. Kupisz je w sklepie.',
-  },
-  {
-    target: '.current-money, #current-money',
-    title: 'Zarobek',
-    text: 'Tutaj na biezaco widzisz, ile zarobiles w tej grze.',
-  },
-  {
-    title: 'Powodzenia!',
-    text: 'Teraz Twoja kolej. Odpowiedz na wszystkie pytania — po ukonczeniu gry zakonczymy samouczek.',
-    nextLabel: 'Zaczynam',
-  },
-];
+function gameSteps(): TourStep[] {
+  return [
+    {
+      target: '.question-container',
+      title: t('onb.g.question.title', 'Pytanie'),
+      text: t('onb.g.question.text', 'Tu pojawia sie pytanie. Przeczytaj je uwaznie — zaraz wybierzesz odpowiedz.'),
+    },
+    {
+      target: '#answers-container',
+      title: t('onb.g.answers.title', 'Odpowiedzi'),
+      text: t('onb.g.answers.text', 'Kliknij jedna z odpowiedzi. Mozesz tez uzyc klawiszy A/B/C/D lub 1/2/3/4.'),
+    },
+    {
+      target: '.timer-container',
+      title: t('onb.g.timer.title', 'Czas'),
+      text: t('onb.g.timer.text', 'Na kazde pytanie masz ograniczony czas. Gdy pasek sie skonczy, pytanie przepada.'),
+    },
+    {
+      target: '.lifelines-container',
+      title: t('onb.g.lifelines.title', 'Kola ratunkowe'),
+      text: t('onb.g.lifelines.text', '50:50 usuwa bledne odpowiedzi, "Pomin" przeskakuje pytanie, a "+Czas" dodaje sekundy. Kupisz je w sklepie.'),
+    },
+    {
+      target: '.current-money, #current-money',
+      title: t('onb.g.money.title', 'Zarobek'),
+      text: t('onb.g.money.text', 'Tutaj na biezaco widzisz, ile zarobiles w tej grze.'),
+    },
+    {
+      title: t('onb.g.final.title', 'Powodzenia!'),
+      text: t('onb.g.final.text', 'Teraz Twoja kolej. Odpowiedz na wszystkie pytania — po ukonczeniu gry zakonczymy samouczek.'),
+      nextLabel: t('onb.g.final.cta', 'Zaczynam'),
+    },
+  ];
+}
 
 /**
  * Returns true when the current visitor is a brand-new player who should see
@@ -330,7 +335,7 @@ export function isFirstTimePlayer(): boolean {
 export function startMenuOnboarding(): void {
   if (storage.getOnboarding() === 'done') return;
 
-  new Tour(MENU_STEPS, {
+  new Tour(menuSteps(), {
     onComplete: () => {
       // Mark the tour as in-progress and send the player into their first game.
       storage.setOnboarding('active');
@@ -351,7 +356,7 @@ export function startGameOnboarding(hooks: { pause?: () => void; resume?: () => 
   if (storage.getOnboarding() === 'done') return;
   storage.setOnboarding('active');
 
-  new Tour(GAME_STEPS, {
+  new Tour(gameSteps(), {
     onStart: hooks.pause,
     onComplete: hooks.resume,
     onSkip: hooks.resume,
@@ -369,9 +374,9 @@ export function finishOnboarding(): void {
   new Tour(
     [
       {
-        title: 'Samouczek ukonczony!',
-        text: 'Gratulacje — ukonczyles swoja pierwsza gre! Znasz juz podstawy. Graj dalej, zdobywaj pieniadze i odblokowuj osiagniecia.',
-        nextLabel: 'Super!',
+        title: t('onb.done.title', 'Samouczek ukonczony!'),
+        text: t('onb.done.text', 'Gratulacje — ukonczyles swoja pierwsza gre! Znasz juz podstawy. Graj dalej, zdobywaj pieniadze i odblokowuj osiagniecia.'),
+        nextLabel: t('onb.done.cta', 'Super!'),
       },
     ],
     { allowSkip: false },

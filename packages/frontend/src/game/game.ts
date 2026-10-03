@@ -7,7 +7,8 @@ import { applyTheme } from '../ui/theme';
 import { initKeyboard, setAnswerCallback, setNextCallback, setEscapeCallback, setEnabled as setKeyboardEnabled } from '../features/keyboard';
 import { startGameOnboarding, finishOnboarding } from '../features/onboarding';
 import { initStreak, resetStreak, incrementStreak, getMultiplier, isNewLevel, getDisplayInfo } from '../features/streak';
-import { getTimerForQuestion, getLevelName, getLevelColor, getFiftyRemoves } from '../features/difficulty';
+import { getTimerForQuestion, getLevelName, getLevelColor, getFiftyRemoves, getDifficultyLevel } from '../features/difficulty';
+import { t } from '../features/i18n';
 import { getDailyQuestions, isCompletedToday, markCompleted, DAILY_MONEY_MULTIPLIER } from '../features/daily';
 import { playCorrect, playIncorrect, playTimerWarning, playClick, playStreak, initSound } from '../features/sound';
 import { checkAll as checkAllAchievements, check as checkAchievement } from '../features/achievements';
@@ -140,11 +141,11 @@ function resumeTimer(): void {
 
 function updateDifficultyIndicator(questionNum: number): void {
   if (els.difficultyIndicator) {
-    const name = getLevelName(questionNum);
+    const name = t(`difficulty.${getDifficultyLevel(questionNum)}`, getLevelName(questionNum));
     const color = getLevelColor(questionNum);
     els.difficultyIndicator.innerHTML = `
       <span style="color: ${color}">${name}</span>
-      <span class="multiplier">${formatMoney(rewardPerQ)} / pytanie</span>
+      <span class="multiplier">${t('game.perQuestion', '{money} / pytanie', { money: formatMoney(rewardPerQ) })}</span>
     `;
   }
 }
@@ -187,13 +188,13 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
   let correctAnswerText: string;
   const correctAns = question.answers.find(a => a.correct)!;
   correctAnswerText = isTrueFalse(question)
-    ? (correctAns.text === 'Prawda' ? 'Prawda' : 'Falsz')
+    ? (correctAns.text === 'Prawda' ? t('tf.true', 'Prawda') : t('tf.false', 'Falsz'))
     : correctAns.text;
 
   const moneyChange = correct ? (reward || rewardPerQ) : penaltyPerQ;
 
   if (els.explanationResult) {
-    els.explanationResult.textContent = customTitle || (correct ? 'Poprawna odpowiedz!' : 'Bledna odpowiedz!');
+    els.explanationResult.textContent = customTitle || (correct ? t('exp.correct', 'Poprawna odpowiedz!') : t('exp.wrong', 'Bledna odpowiedz!'));
     els.explanationResult.className = `explanation-result ${correct ? 'correct' : 'incorrect'}`;
   }
 
@@ -217,7 +218,9 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
   if (body) body.innerHTML = formatExplanation(explanation);
 
   if (els.nextBtn) {
-    els.nextBtn.textContent = currentQuestionIndex >= questions.length - 1 ? 'Zobacz wynik' : 'Nastepne pytanie';
+    els.nextBtn.textContent = currentQuestionIndex >= questions.length - 1
+      ? t('exp.seeResult', 'Zobacz wynik')
+      : t('exp.nextQuestion', 'Nastepne pytanie');
   }
 
   // Show podcast indicator if one exists for this question
@@ -229,7 +232,7 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
     const btn = document.createElement('button');
     btn.id = 'podcast-listen-btn';
     btn.className = 'btn btn-secondary podcast-listen-btn';
-    btn.innerHTML = '🎧 Posluchaj podcastu';
+    btn.innerHTML = t('podcast.listen', '🎧 Posluchaj podcastu');
     btn.addEventListener('click', () => {
       showAudioPlayer(podcast.audioUrl, podcast.title, podcast.script);
     });
@@ -262,7 +265,7 @@ function handleTimeOut(): void {
   }
   scheduleSave();
   playIncorrect();
-  showExplanation(false, question.explanation || '', 'Czas minal!', null, wrongCount);
+  showExplanation(false, question.explanation || '', t('exp.timeUp', 'Czas minal!'), null, wrongCount);
 }
 
 function handleAnswer(selectedIndex: number): void {
@@ -342,9 +345,10 @@ function loadQuestion(): void {
   const questionNum = currentQuestionIndex + 1;
 
   if (els.questionNumber) {
-    if (isDailyChallenge) els.questionNumber.textContent = `Wyzwanie dnia ${questionNum}/${questions.length}`;
-    else if (isPracticeMode) els.questionNumber.textContent = `Cwiczenie ${questionNum}/${questions.length}`;
-    else els.questionNumber.textContent = `Pytanie ${questionNum}/${questions.length}`;
+    const nums = { n: questionNum, total: questions.length };
+    if (isDailyChallenge) els.questionNumber.textContent = t('game.qDaily', 'Wyzwanie dnia {n}/{total}', nums);
+    else if (isPracticeMode) els.questionNumber.textContent = t('game.qPractice', 'Cwiczenie {n}/{total}', nums);
+    else els.questionNumber.textContent = t('game.qNum', 'Pytanie {n}/{total}', nums);
   }
 
   if (els.questionText) els.questionText.textContent = question.question;
@@ -355,7 +359,7 @@ function loadQuestion(): void {
 
   const btns = getAnswerBtns();
   if (isTrueFalse(question)) {
-    const labels = ['Prawda', 'Falsz'];
+    const labels = [t('tf.true', 'Prawda'), t('tf.false', 'Falsz')];
     btns.forEach((btn, i) => {
       btn.classList.remove('selected', 'correct', 'incorrect', 'hidden');
       if (i < 2) {
@@ -404,32 +408,34 @@ function endGame(): void {
 
   if (isDailyChallenge) {
     markCompleted();
-    if (els.endTitle) { els.endTitle.textContent = 'Wyzwanie dnia ukonczone!'; els.endTitle.className = 'end-title win'; }
+    if (els.endTitle) { els.endTitle.textContent = t('end.dailyDone', 'Wyzwanie dnia ukonczone!'); els.endTitle.className = 'end-title win'; }
     checkAchievement('daily_champion');
   } else if (isPracticeMode) {
     const remaining = storage.getIncorrectCount();
-    if (els.endTitle) { els.endTitle.textContent = 'Cwiczenie zakonczone!'; els.endTitle.className = 'end-title win'; }
+    if (els.endTitle) { els.endTitle.textContent = t('end.practiceDone', 'Cwiczenie zakonczone!'); els.endTitle.className = 'end-title win'; }
     if (els.endMoney) {
-      els.endMoney.textContent = remaining === 0 ? 'Swietnie! Opanowales wszystkie pytania!' : `Pozostalo ${remaining} pytan do powtorki.`;
+      els.endMoney.textContent = remaining === 0
+        ? t('end.practiceAll', 'Swietnie! Opanowales wszystkie pytania!')
+        : t('end.practiceLeft', 'Pozostalo {n} pytan do powtorki.', { n: remaining });
     }
   } else {
     if (earned > 0) {
-      if (els.endTitle) { els.endTitle.textContent = 'Gratulacje!'; els.endTitle.className = 'end-title win'; }
+      if (els.endTitle) { els.endTitle.textContent = t('end.win', 'Gratulacje!'); els.endTitle.className = 'end-title win'; }
       storage.incrementGamesWon();
       checkAchievement('first_win');
       if (isPerfect) { storage.incrementPerfectGames(); checkAchievement('perfect_game'); }
       if (noLifelines && isPerfect) { storage.incrementGamesWonNoLifelines(); checkAchievement('no_lifelines'); }
     } else {
-      if (els.endTitle) { els.endTitle.textContent = 'Koniec gry!'; els.endTitle.className = 'end-title lose'; }
+      if (els.endTitle) { els.endTitle.textContent = t('end.gameOver', 'Koniec gry!'); els.endTitle.className = 'end-title lose'; }
     }
 
     const earnedText = earned >= 0 ? `+${formatMoney(earned)}` : formatMoney(earned);
     if (els.endMoney) {
-      els.endMoney.textContent = `Zarobiles w tej grze: ${earnedText}`;
+      els.endMoney.textContent = t('end.earned', 'Zarobiles w tej grze: {amount}', { amount: earnedText });
       if (earned > 0) {
-        const pos = addLeaderboardScore(earned, 'Gracz');
+        const pos = addLeaderboardScore(earned, t('lb.defaultName', 'Gracz'));
         if (pos && pos <= 10) {
-          els.endMoney.innerHTML += `<br><span class="leaderboard-position">Miejsce #${pos} na tablicy wynikow!</span>`;
+          els.endMoney.innerHTML += `<br><span class="leaderboard-position">${t('end.leaderboardPos', 'Miejsce #{pos} na tablicy wynikow!', { pos })}</span>`;
         }
       }
     }
@@ -492,7 +498,7 @@ function confirmExit(): void {
     window.location.href = 'index.html';
     return;
   }
-  if (confirm('Czy na pewno chcesz wyjsc?')) {
+  if (confirm(t('game.confirmExit', 'Czy na pewno chcesz wyjsc?'))) {
     immediateSave();
     window.location.href = 'index.html';
   }
@@ -582,14 +588,14 @@ function startGame(): void {
 
   if (isDailyChallenge) {
     if (isCompletedToday()) {
-      alert('Dzisiejsze wyzwanie zostalo juz ukonczone! Wroc jutro.');
+      alert(t('daily.alreadyDone', 'Dzisiejsze wyzwanie zostalo juz ukonczone! Wroc jutro.'));
       window.location.href = 'index.html';
       return;
     }
     questions = getDailyQuestions(getQuestions()).map(q => shuffleAnswers(q));
   } else if (isPracticeMode) {
     if (!isLoggedIn()) {
-      alert('Zaloguj sie, aby korzystac z trybu cwiczen.');
+      alert(t('practice.loginAlert', 'Zaloguj sie, aby korzystac z trybu cwiczen.'));
       window.location.href = 'index.html';
       return;
     }
@@ -600,7 +606,7 @@ function startGame(): void {
     questions = incorrectQuestions.map(q => shuffleAnswers(q));
 
     if (questions.length === 0) {
-      alert('Nie masz zadnych blednych pytan do cwiczenia!');
+      alert(t('practice.noneAlert', 'Nie masz zadnych blednych pytan do cwiczenia!'));
       window.location.href = 'index.html';
       return;
     }
