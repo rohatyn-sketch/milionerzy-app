@@ -11,7 +11,7 @@ import { getStatus as getDailyStatus, startCountdown as startDailyCountdown } fr
 import { renderPreview as renderLeaderboardPreview } from './features/leaderboard';
 import { loadCachedQuestions, loadQuestionsForClass, getQuestions } from './features/questions';
 import { isFirstTimePlayer, startMenuOnboarding } from './features/onboarding';
-import { initI18n, t, toggleLang, getLang } from './features/i18n';
+import { initI18n, t } from './features/i18n';
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFormulasModal();
   setupCodeInput();
   setupSoundToggles();
-  setupLangToggle();
   setupDailyChallenge();
   setupLeaderboardPreview();
 
@@ -207,17 +206,6 @@ function setupSoundToggles(): void {
       musicToggle.classList.toggle('active', enabled);
     });
   }
-}
-
-// Language switcher: shows the current language; clicking flips PL<->EN and
-// reloads so the whole UI re-renders (see i18n.toggleLang).
-function setupLangToggle(): void {
-  const btn = document.getElementById('lang-toggle');
-  if (!btn) return;
-  btn.textContent = getLang().toUpperCase();
-  btn.classList.toggle('active', getLang() === 'en');
-  btn.title = t('lang.toggleTitle', 'Zmien jezyk');
-  btn.addEventListener('click', () => toggleLang());
 }
 
 function setupDailyChallenge(): void {

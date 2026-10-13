@@ -84,6 +84,23 @@ export function applyI18n(root: ParentNode = document): void {
 /** Call once per page, early, to apply the chosen language to static markup. */
 export function initI18n(): void {
   applyI18n();
+  mountLangSwitcher();
+}
+
+// Fixed language switcher, pinned to the top-right on every page. It shows the
+// current language; clicking it flips PL<->EN and reloads (see toggleLang).
+function mountLangSwitcher(): void {
+  if (document.getElementById('lang-switcher')) return;
+  const btn = document.createElement('button');
+  btn.id = 'lang-switcher';
+  btn.type = 'button';
+  btn.className = 'lang-switcher';
+  btn.textContent = getLang().toUpperCase();
+  const label = t('lang.toggleTitle', 'Zmien jezyk');
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
+  btn.addEventListener('click', () => toggleLang());
+  document.body.appendChild(btn);
 }
 
 // --- English dictionary ----------------------------------------------------
