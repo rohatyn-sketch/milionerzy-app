@@ -240,7 +240,7 @@ class Tour {
 function menuSteps(): TourStep[] {
   return [
     {
-      title: t('onb.welcome.title', 'Witaj w Milionerzy!'),
+      title: t('onb.welcome.title', 'Witaj w EduFiszka!'),
       text: t('onb.welcome.text', 'To gra, w ktorej odpowiadasz na pytania i zdobywasz pieniadze. Pokazemy Ci w kilku krokach, jak grac.'),
     },
     {

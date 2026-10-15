@@ -48,7 +48,7 @@ function renderThemes() {
   defaultItem.className = 'shop-item owned';
   defaultItem.innerHTML = `
     <h3 class="shop-item-name">${t('shop.defaultTheme', 'Domyslny motyw')}</h3>
-    <p class="shop-item-desc">${t('shop.defaultThemeDesc', 'Klasyczny niebieski motyw Milionerzy.')}</p>
+    <p class="shop-item-desc">${t('shop.defaultThemeDesc', 'Klasyczny niebieski motyw EduFiszka.')}</p>
     <p class="shop-item-price">${t('shop.free', 'Darmowy')}</p>
     <button class="shop-item-btn ${activeTheme === 'default' || !activeTheme ? 'active' : 'activate'}">
       ${activeTheme === 'default' || !activeTheme ? t('shop.active', 'Aktywny') : t('shop.activate', 'Aktywuj')}
@@ -109,7 +109,7 @@ function renderBackgrounds() {
   defaultItem.className = 'shop-item owned';
   defaultItem.innerHTML = `
     <h3 class="shop-item-name">${t('shop.defaultBg', 'Domyslne tlo')}</h3>
-    <p class="shop-item-desc">${t('shop.defaultBgDesc', 'Klasyczne ciemne tlo gry Milionerzy.')}</p>
+    <p class="shop-item-desc">${t('shop.defaultBgDesc', 'Klasyczne ciemne tlo gry EduFiszka.')}</p>
     <p class="shop-item-price">${t('shop.free', 'Darmowe')}</p>
     <button class="shop-item-btn ${activeBg === 'default' || !activeBg ? 'active' : 'activate'}">
       ${activeBg === 'default' || !activeBg ? t('shop.active', 'Aktywne') : t('shop.activate', 'Aktywuj')}

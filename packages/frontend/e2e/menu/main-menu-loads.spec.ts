@@ -4,11 +4,11 @@ test.describe('Main menu loads', () => {
   test('renders title, nav buttons, and money display', async ({ page }) => {
     await test.step('navigate to home page', async () => {
       await page.goto('/');
-      await expect(page).toHaveTitle(/Milionerzy/);
+      await expect(page).toHaveTitle(/EduFiszka/);
     });
 
     await test.step('title is visible', async () => {
-      await expect(page.locator('h1.title')).toHaveText('Milionerzy');
+      await expect(page.locator('h1.title')).toHaveText('EduFiszka');
     });
 
     await test.step('play button links to game', async () => {
