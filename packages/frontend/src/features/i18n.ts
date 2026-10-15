@@ -235,9 +235,9 @@ const EN: Record<string, string> = {
   'shop.backgrounds': 'Backgrounds',
   'shop.lifelines': 'Lifelines',
   'shop.defaultTheme': 'Default theme',
-  'shop.defaultThemeDesc': 'The classic blue Milionerzy theme.',
+  'shop.defaultThemeDesc': 'The classic blue EduFiszka theme.',
   'shop.defaultBg': 'Default background',
-  'shop.defaultBgDesc': 'The classic dark Milionerzy background.',
+  'shop.defaultBgDesc': 'The classic dark EduFiszka background.',
   'shop.free': 'Free',
   'shop.owned': 'Owned',
   'shop.buy': 'Buy',
@@ -313,7 +313,7 @@ const EN: Record<string, string> = {
   'difficulty.hard': 'Hard',
 
   // First-time onboarding tour
-  'onb.welcome.title': 'Welcome to Milionerzy!',
+  'onb.welcome.title': 'Welcome to EduFiszka!',
   'onb.welcome.text': "It's a game where you answer questions and earn money. We'll show you how to play in a few steps.",
   'onb.class.title': 'Pick a subject',
   'onb.class.text': 'Here you choose the class or subject you want to play. Once signed in, you can also add your own question set.',
