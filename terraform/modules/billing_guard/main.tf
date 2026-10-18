@@ -17,7 +17,10 @@
 #           (stops the API key everywhere, even outside this app)
 #
 # Everything is behind var.enabled (default false) so merging this does not
-# change live infrastructure until the owner has done the manual prerequisites.
+# change live infrastructure until the owner has done the manual prerequisites:
+# grant github-deployer@milionerzy-487910.iam.gserviceaccount.com (the
+# Terraform identity) "Billing Account Costs Manager" (roles/billing.costsManager)
+# on the billing account and "Project IAM Admin" on the Gemini project.
 
 locals {
   count = var.enabled ? 1 : 0
@@ -114,8 +117,10 @@ resource "google_project_iam_member" "kill_switch_datastore" {
   member  = "serviceAccount:${google_service_account.kill_switch[0].email}"
 }
 
-# Disable the Gemini API in the AI Studio project. Requires the identity that
-# runs Terraform to be allowed to set IAM on that project (manual prerequisite).
+# Disable the Gemini API in the AI Studio project. Requires the Terraform
+# identity (github-deployer@milionerzy-487910.iam.gserviceaccount.com, via
+# Workload Identity Federation) to hold "Project IAM Admin" on that project —
+# a manual prerequisite.
 resource "google_project_iam_member" "kill_switch_serviceusage" {
   count   = var.enabled && var.kill_mode == "disable_api" ? 1 : 0
   project = var.gemini_project_id

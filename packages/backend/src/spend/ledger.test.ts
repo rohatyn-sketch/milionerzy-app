@@ -34,9 +34,9 @@ describe('spend ledger', () => {
     process.env = { ...envBackup };
   });
 
-  it('defaults to $80 global / $10 per user per calendar month', async () => {
+  it('defaults to $80 global / $8 per user per calendar month', async () => {
     const view = await readBudget(db, 'u1', OCT);
-    expect(view.config).toEqual({ globalCapUsd: 80, userCapUsd: 10, period: 'monthly', aiEnabled: true });
+    expect(view.config).toEqual({ globalCapUsd: 80, userCapUsd: 8, period: 'monthly', aiEnabled: true });
     expect(view.periodKey).toBe('2026-10');
     expect(view.resetsAt).toBe('2026-11-01T00:00:00.000Z');
   });
@@ -76,7 +76,7 @@ describe('spend ledger', () => {
   });
 
   it('refuses a user over their personal cap while others keep going', async () => {
-    db.docs.set(userDocPath('2026-10', 'heavy'), { spentUsd: 9.95 });
+    db.docs.set(userDocPath('2026-10', 'heavy'), { spentUsd: 7.95 });
     await expectRefused(
       reserve(db, { uid: 'heavy', feature: 'questions', estimateUsd: 0.2, now: OCT }),
       'AI_BUDGET_USER_EXHAUSTED'

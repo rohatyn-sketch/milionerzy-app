@@ -2,7 +2,7 @@
 //
 //   pnpm spend-report                       # this period's spend, caps, top users
 //   pnpm spend-report --top 25              # show more users
-//   pnpm spend-report --global-cap 80 --user-cap 10 --period monthly
+//   pnpm spend-report --global-cap 80 --user-cap 8 --period monthly
 //   pnpm spend-report --ai off              # emergency stop for all AI features
 //   pnpm spend-report --ai on
 //

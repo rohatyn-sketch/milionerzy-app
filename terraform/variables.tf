@@ -43,7 +43,7 @@ variable "github_repo" {
 variable "enable_billing_guard" {
   type        = bool
   default     = false
-  description = "Create the monthly billing budget and kill switch. Requires manual IAM prerequisites first."
+  description = "Create the monthly billing budget and kill switch. Requires manual IAM grants to github-deployer first (billing.costsManager on the billing account, Project IAM Admin on the Gemini project)."
 }
 
 variable "billing_account_id" {

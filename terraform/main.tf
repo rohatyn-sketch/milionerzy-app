@@ -81,7 +81,10 @@ module "hosting" {
 }
 
 # AI spend backstop: monthly Cloud Billing budget + kill switch. Disabled until
-# the owner completes the manual IAM prerequisites, then set
+# the owner completes the manual IAM prerequisites (grant the Terraform identity
+# github-deployer@milionerzy-487910.iam.gserviceaccount.com "Billing Account
+# Costs Manager" on the billing account and "Project IAM Admin" on
+# gen-lang-client-0089604349), then set
 # enable_billing_guard = true (see the PR description / runbook).
 module "billing_guard" {
   source                  = "./modules/billing_guard"

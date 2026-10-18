@@ -131,7 +131,7 @@ cost in a Firestore ledger, makes the call, then records the real cost from
 | Setting | Default | Where to change |
 |---------|---------|-----------------|
 | Global cap | $80 per calendar month (UTC) | Firestore `config/spend.globalCapUsd` or env `SPEND_GLOBAL_CAP_USD` |
-| Per-user cap | $10 per calendar month | `config/spend.userCapUsd` / `SPEND_USER_CAP_USD` |
+| Per-user cap | $8 per calendar month | `config/spend.userCapUsd` / `SPEND_USER_CAP_USD` |
 | Period | `monthly` | `config/spend.period` (`monthly` or `lifetime`) / `SPEND_PERIOD` |
 | Kill switch | AI on | `config/spend.aiEnabled` (`false` = all AI refused) / `AI_ENABLED` |
 | Rate limit | 3/min, 20/hour per user | env `AI_RATE_LIMIT_PER_MINUTE`, `AI_RATE_LIMIT_PER_HOUR` |
@@ -143,8 +143,12 @@ cost in a Firestore ledger, makes the call, then records the real cost from
 - Cached question sets and podcasts are served without any AI call, so they keep
   working when the budget is spent.
 - Owner report / cap changes: `pnpm spend-report` (see `src/scripts/spend-report.ts`).
-- Billing backstop: `terraform/modules/billing_guard` (monthly budget, Pub/Sub,
-  kill-switch function), off until `enable_billing_guard = true`.
+- Billing backstop: `terraform/modules/billing_guard` (monthly 300 PLN budget,
+  Pub/Sub, kill-switch function), off until `enable_billing_guard = true`.
+  Prerequisite: grant the Terraform identity
+  `github-deployer@milionerzy-487910.iam.gserviceaccount.com` "Billing Account
+  Costs Manager" on billing account `01D2D7-34EDF2-9F0220` and "Project IAM
+  Admin" on `gen-lang-client-0089604349`.
 - Gemini is billed to the AI Studio project `gen-lang-client-0089604349` (which
   owns the API key), not to `milionerzy-487910`.
 

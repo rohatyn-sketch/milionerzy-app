@@ -1,7 +1,7 @@
 variable "enabled" {
   type        = bool
   default     = false
-  description = "Create the billing backstop. Off by default: it needs manual IAM prerequisites first (see README in the PR / ARCHITECTURE.md)."
+  description = "Create the billing backstop. Off by default: it needs manual IAM grants to github-deployer first (see ARCHITECTURE.md, AI Spend Protection)."
 }
 
 variable "project_id" {

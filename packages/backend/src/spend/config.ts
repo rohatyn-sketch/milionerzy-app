@@ -28,7 +28,7 @@ export interface SpendConfig {
 
 export const DEFAULT_SPEND_CONFIG: SpendConfig = {
   globalCapUsd: 80,
-  userCapUsd: 10,
+  userCapUsd: 8,
   period: 'monthly',
   aiEnabled: true,
 };
