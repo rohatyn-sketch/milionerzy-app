@@ -18,7 +18,7 @@ test.describe('Class selector', () => {
   test('setup panel opens and closes', async ({ page }) => {
     await page.goto('/');
 
-    await test.step('click gear icon to open setup panel', async () => {
+    await test.step('click the "add class" card to open the setup panel', async () => {
       await page.locator('#setup-toggle').click();
       await expect(page.locator('#setup-panel')).toBeVisible();
     });

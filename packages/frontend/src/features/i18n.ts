@@ -58,6 +58,7 @@ export function t(key: string, pl: string, params?: Record<string, string | numb
  *   data-i18n-html      -> innerHTML
  *   data-i18n-placeholder -> placeholder attribute
  *   data-i18n-title     -> title attribute
+ *   data-i18n-aria-label -> aria-label attribute
  */
 export function applyI18n(root: ParentNode = document): void {
   document.documentElement.lang = getLang();
@@ -78,6 +79,10 @@ export function applyI18n(root: ParentNode = document): void {
   root.querySelectorAll<HTMLElement>('[data-i18n-title]').forEach((el) => {
     const v = EN[el.dataset.i18nTitle!];
     if (v !== undefined) el.setAttribute('title', v);
+  });
+  root.querySelectorAll<HTMLElement>('[data-i18n-aria-label]').forEach((el) => {
+    const v = EN[el.dataset.i18nAriaLabel!];
+    if (v !== undefined) el.setAttribute('aria-label', v);
   });
 }
 
@@ -100,20 +105,56 @@ function mountLangSwitcher(): void {
   btn.title = label;
   btn.setAttribute('aria-label', label);
   btn.addEventListener('click', () => toggleLang());
-  document.body.appendChild(btn);
+  // Live inside the page's top bar when it has one (app shell / game bar), so
+  // it never overlaps other controls; fall back to a fixed corner button.
+  const slot = document.getElementById('app-bar-actions');
+  if (slot) {
+    btn.classList.add('lang-switcher--inline');
+    slot.insertBefore(btn, document.getElementById('auth-area'));
+  } else {
+    document.body.appendChild(btn);
+  }
 }
 
 // --- English dictionary ----------------------------------------------------
 // Keys are grouped by area. Polish originals live at the call sites.
 const EN: Record<string, string> = {
-  // Shared / navigation
+  // Shared / navigation (app shell)
   'nav.back': '← Back to menu',
+  'nav.home': 'Home',
+  'nav.progress': 'Progress',
+  'nav.shop': 'Shop',
+  'nav.label': 'Main navigation',
+  'nav.exitGame': 'End game',
+  'a11y.skip': 'Skip to content',
+  'common.close': 'Close',
+  'wallet.label': 'Your money: {money}. Go to the shop',
   'money.label': 'Your money:',
+  'money.labelShort': 'Money',
+
+  // Home page sections
+  'home.subjectTitle': 'Choose a subject',
+  'home.startTitle': 'Play',
+  'home.progressTitle': 'Your progress',
+  'home.progressLink': 'All progress',
+  'home.settingsTitle': 'Settings',
+  'settings.sound': 'Sound',
+  'code.label': 'Bonus code',
+  'stats.playedShort': 'Games played',
+  'stats.wonShort': 'Won',
+  'stats.bestStreakShort': 'Best streak',
+
+  // Progress page
+  'progress.title': 'Progress',
+  'progress.subtitle': 'Your stats, achievements and best scores.',
+  'progress.statsTitle': 'Stats',
+  'ach.statusUnlocked': 'Unlocked',
+  'ach.statusLocked': 'Locked',
 
   // Main menu
   'menu.subtitle': 'Pick a class and play!',
   'menu.play': 'Play',
-  'menu.practice': 'Practice',
+  'menu.practice': 'Practice mistakes',
   'menu.shop': 'Shop',
   'menu.formulas': 'Formulas',
   'stats.played': 'Games played:',
@@ -156,7 +197,6 @@ const EN: Record<string, string> = {
   'setup.imageLabel': 'Photo of the success criteria (optional)',
   'setup.authNotice': 'Sign in with a Google account to generate questions.',
   'setup.generate': 'Generate questions',
-  'setup.toggleTitle': 'AI question settings',
   'setup.enterName': 'Enter a subject / class name',
   'setup.generatedN': 'Generated {n} questions!',
   'setup.genLoginTitle': 'Sign in to generate questions',
@@ -173,15 +213,18 @@ const EN: Record<string, string> = {
   'class.default': 'Default',
   'class.questions': '{n} questions',
   'class.add': 'Add class',
+  'class.addHint': 'Your own AI questions',
   'class.deleteTitle': 'Delete class',
   'class.deleteConfirm': 'Are you sure you want to delete the class "{name}"?',
 
   // Auth
   'auth.signIn': 'Sign in with Google',
+  'auth.signInShort': 'Sign in',
   'auth.logout': 'Log out',
   'auth.hint': 'Sign in to save your progress and create new classes',
   'auth.loginError': 'Sign-in error: ',
   'practice.loginReq': 'Sign in to use practice mode',
+  'practice.empty': 'Questions you answer wrong will show up here for review.',
   'practice.loginAlert': 'Sign in to use practice mode.',
   'practice.noneAlert': "You don't have any incorrect questions to practice!",
 
@@ -224,10 +267,6 @@ const EN: Record<string, string> = {
   'end.practiceLeft': '{n} questions left to review.',
   'end.earned': 'Earned this game: {amount}',
   'end.leaderboardPos': 'Rank #{pos} on the leaderboard!',
-
-  // Login prompt (class selector)
-  'login.title': 'Sign-in required',
-  'login.text': 'To add new classes and generate questions, you must sign in with a Google account.',
 
   // Shop
   'shop.title': 'Shop',

@@ -14,16 +14,15 @@
     <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
+    <a class="skip-link" href="#main" data-i18n="a11y.skip">Przejdz do tresci</a>
     <div class="spotlight"></div>
     <div class="stars"></div>
 
-    <nav class="nav-back">
-        <a href="index.html" data-i18n="nav.back">&#8592; Powrot do menu</a>
-    </nav>
+    <header class="app-bar" id="app-bar"></header>
 
-    <div class="container">
+    <main class="container page" id="main">
         <div class="shop-container">
-            <h1 class="shop-title" data-i18n="shop.title">Sklep</h1>
+            <h1 class="page-title shop-title" data-i18n="shop.title">Sklep</h1>
             <p class="shop-balance"><span data-i18n="money.label">Twoje pieniadze:</span> <span id="money-amount">0 PLN</span></p>
 
             <!-- Motywy wizualne -->
@@ -44,7 +43,7 @@
                 <div class="shop-items" id="lifelines-container"></div>
             </section>
         </div>
-    </div>
+    </main>
 
     <script type="module" src="src/shop-entry.ts"></script>
 </body>

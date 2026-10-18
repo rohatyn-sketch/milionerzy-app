@@ -24,6 +24,11 @@ function handleKeyPress(e: KeyboardEvent): void {
   }
 
   if (code === 'Space' || code === 'Enter') {
+    // A focused button or link handles Enter/Space natively (that is how
+    // keyboard users press "Next", lifelines or "Play again"). Hijacking the
+    // key there made those controls impossible to activate (WCAG 2.1.1).
+    const tag = active?.tagName;
+    if (tag === 'BUTTON' || tag === 'A') return;
     e.preventDefault();
     onNextQuestion?.();
   }

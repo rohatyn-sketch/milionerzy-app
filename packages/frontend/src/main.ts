@@ -12,10 +12,16 @@ import { renderPreview as renderLeaderboardPreview } from './features/leaderboar
 import { loadCachedQuestions, loadQuestionsForClass, getQuestions } from './features/questions';
 import { isFirstTimePlayer, startMenuOnboarding } from './features/onboarding';
 import { initI18n, t } from './features/i18n';
+import { mountAppShell } from './ui/app-shell';
+import { renderPracticeButton } from './ui/practice-button';
+import { setupDialog, openDialog } from './ui/dialog';
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   storage.init();
+  // The shell must exist before i18n (language switcher slot) and auth
+  // (#auth-area lives in the app bar).
+  mountAppShell('home');
   initI18n();
   initAuth();
   initSound();
@@ -117,42 +123,16 @@ function updateStatsDisplay(): void {
 }
 
 function updatePracticeButton(): void {
-  const btn = document.getElementById('practice-btn') as HTMLAnchorElement | null;
-  const count = document.getElementById('practice-count');
-  if (!btn || !count) return;
-
-  if (!isLoggedIn()) {
-    count.textContent = '(0)';
-    btn.classList.add('disabled');
-    btn.title = t('practice.loginReq', 'Zaloguj sie, aby korzystac z trybu cwiczen');
-    return;
-  }
-
-  btn.title = '';
-  const incorrectCount = storage.getIncorrectCount();
-  if (incorrectCount > 0) {
-    count.textContent = `(${incorrectCount})`;
-    btn.classList.remove('disabled');
-  } else {
-    count.textContent = '(0)';
-    btn.classList.add('disabled');
-  }
+  renderPracticeButton(isLoggedIn());
 }
 
 function setupFormulasModal(): void {
   const btn = document.getElementById('formulas-btn');
   const modal = document.getElementById('formulas-modal');
-  const close = document.getElementById('formulas-close');
   if (!btn || !modal) return;
 
-  btn.addEventListener('click', () => modal.classList.add('active'));
-  close?.addEventListener('click', () => modal.classList.remove('active'));
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.remove('active');
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('active')) modal.classList.remove('active');
-  });
+  setupDialog(modal, document.getElementById('formulas-close'));
+  btn.addEventListener('click', () => openDialog(modal));
 }
 
 function setupCodeInput(): void {
@@ -166,11 +146,11 @@ function setupCodeInput(): void {
     if (code === 'Markot') {
       storage.setMoney((storage.getMoney() || 0) + 1000000);
       updateMoneyDisplay();
-      msg.style.color = '#4CAF50';
+      msg.className = 'field-message success';
       msg.textContent = t('code.ok', 'Kod poprawny! Otrzymujesz 1 000 000 PLN!');
       input.value = '';
     } else {
-      msg.style.color = '#f44336';
+      msg.className = 'field-message error';
       msg.textContent = t('code.bad', 'Niepoprawny kod!');
     }
     setTimeout(() => { msg.textContent = ''; }, 3000);
@@ -182,30 +162,26 @@ function setupCodeInput(): void {
 }
 
 function setupSoundToggles(): void {
-  const sfxToggle = document.getElementById('sfx-toggle');
-  const musicToggle = document.getElementById('music-toggle');
+  const bind = (
+    el: HTMLElement | null,
+    isOn: () => boolean,
+    toggle: () => boolean,
+    label: (on: boolean) => string,
+  ) => {
+    if (!el) return;
+    const paint = (on: boolean) => {
+      el.textContent = label(on);
+      el.classList.toggle('active', on);
+      el.setAttribute('aria-pressed', String(on));
+    };
+    paint(isOn());
+    el.addEventListener('click', () => paint(toggle()));
+  };
 
-  if (sfxToggle) {
-    const sfxOn = isSfxEnabled();
-    sfxToggle.textContent = sfxOn ? t('sfx.on', 'SFX: ON') : t('sfx.off', 'SFX: OFF');
-    sfxToggle.classList.toggle('active', sfxOn);
-    sfxToggle.addEventListener('click', () => {
-      const enabled = toggleSfx();
-      sfxToggle.textContent = enabled ? t('sfx.on', 'SFX: ON') : t('sfx.off', 'SFX: OFF');
-      sfxToggle.classList.toggle('active', enabled);
-    });
-  }
-
-  if (musicToggle) {
-    const musicOn = isMusicEnabled();
-    musicToggle.textContent = musicOn ? t('music.on', 'Muzyka: ON') : t('music.off', 'Muzyka: OFF');
-    musicToggle.classList.toggle('active', musicOn);
-    musicToggle.addEventListener('click', () => {
-      const enabled = toggleMusic();
-      musicToggle.textContent = enabled ? t('music.on', 'Muzyka: ON') : t('music.off', 'Muzyka: OFF');
-      musicToggle.classList.toggle('active', enabled);
-    });
-  }
+  bind(document.getElementById('sfx-toggle'), isSfxEnabled, toggleSfx,
+    (on) => (on ? t('sfx.on', 'SFX: ON') : t('sfx.off', 'SFX: OFF')));
+  bind(document.getElementById('music-toggle'), isMusicEnabled, toggleMusic,
+    (on) => (on ? t('music.on', 'Muzyka: ON') : t('music.off', 'Muzyka: OFF')));
 }
 
 function setupDailyChallenge(): void {
@@ -218,7 +194,13 @@ function setupDailyChallenge(): void {
   const status = getDailyStatus();
 
   if (status.completed) {
-    if (dailyBtn) { dailyBtn.classList.add('disabled'); dailyBtn.textContent = t('daily.done', 'Ukonczone!'); }
+    if (dailyBtn) {
+      dailyBtn.classList.add('disabled');
+      dailyBtn.textContent = t('daily.done', 'Ukonczone!');
+      dailyBtn.removeAttribute('href');
+      dailyBtn.setAttribute('aria-disabled', 'true');
+      dailyBtn.setAttribute('role', 'link');
+    }
     if (statusEl) statusEl.textContent = t('daily.completedMsg', 'Wyzwanie ukonczone! Nastepne za:');
     if (countdown) startDailyCountdown('daily-countdown');
   } else {

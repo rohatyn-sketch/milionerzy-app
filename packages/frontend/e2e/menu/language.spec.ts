@@ -24,7 +24,7 @@ test.describe('Language switcher', () => {
 
     // Menu chrome is translated.
     await expect(page.locator('a.btn-primary', { hasText: 'Play' })).toBeVisible();
-    await expect(page.locator('a.btn-secondary', { hasText: 'Shop' })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Shop', exact: true })).toBeVisible();
     await expect(page.locator('#subtitle-text')).toHaveText('Pick a class and play!');
   });
 

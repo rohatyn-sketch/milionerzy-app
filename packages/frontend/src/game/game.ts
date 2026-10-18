@@ -240,6 +240,9 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
   }
 
   els.explanationOverlay?.classList.add('active');
+  // Move focus into the result dialog so keyboard / screen-reader users land
+  // on the outcome and the "next" action (APG dialog pattern).
+  requestAnimationFrame(() => els.nextBtn?.focus());
 
   // In practice mode, show learn-more popup if user got this question wrong 2+ times
   if (isPracticeMode && !correct && wrongCount >= 2 && !podcast) {
@@ -443,6 +446,7 @@ function endGame(): void {
 
   checkAllAchievements();
   els.endScreen?.classList.add('active');
+  requestAnimationFrame(() => els.endScreen?.querySelector<HTMLElement>('.end-buttons a, .end-buttons button')?.focus());
   scheduleSave();
 
   // Completing a normal game is the end of the first-time guide.
