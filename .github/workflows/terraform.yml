@@ -29,10 +29,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Use SA key for initial bootstrap; switch to WIF once provisioned
+      # Keyless auth via Workload Identity Federation (provisioned in modules/functions)
       - uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: projects/577769856938/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-deployer@milionerzy-487910.iam.gserviceaccount.com
 
       - uses: hashicorp/setup-terraform@v3
         with:
@@ -65,6 +66,10 @@ jobs:
               repo: context.repo.repo,
               body: output
             });
+
+      - name: Fail if plan failed
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
