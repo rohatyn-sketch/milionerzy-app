@@ -37,3 +37,5 @@ export { FALLBACK_QUESTIONS } from './constants/questions-fallback';
 export { formatMoney } from './utils/money';
 export { getDailySeed, seededRandom } from './utils/daily-seed';
 export { shuffleAnswers, getRandomQuestions, getMainCategory } from './utils/question-helpers';
+export { AI_ERROR_CODES } from './constants/ai-budget';
+export type { AiErrorCode, AiErrorResponse, AiBudgetResponse } from './constants/ai-budget';

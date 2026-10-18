@@ -1,7 +1,14 @@
 import type { Question } from '@milionerzy/shared';
 import { generatePodcast, type PodcastInfo } from '../api/podcast.api';
+import { aiRefusalMessage } from '../features/ai-budget';
 import { showAudioPlayer } from './audio-player';
 import { t } from '../features/i18n';
+
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
 let toastEl: HTMLElement | null = null;
 let isGenerating = false;
@@ -169,12 +176,13 @@ async function handleGenerate(question: Question): Promise<void> {
       contentEl.innerHTML = `
         <div class="learn-toast-icon">😔</div>
         <div class="learn-toast-text">
-          <p class="learn-toast-message">${t('learn.failed', 'Nie udalo sie wygenerowac podcastu.')}</p>
+          <p class="learn-toast-message">${escapeHtml(aiRefusalMessage(err) ?? t('learn.failed', 'Nie udalo sie wygenerowac podcastu.'))}</p>
         </div>
         <button class="learn-toast-close" id="learn-toast-close-err">&times;</button>
       `;
       document.getElementById('learn-toast-close-err')?.addEventListener('click', () => hideLearnMorePopup());
-      setTimeout(() => hideLearnMorePopup(), 5000);
+      // Budget/rate-limit explanations are longer, so leave them up longer.
+      setTimeout(() => hideLearnMorePopup(), aiRefusalMessage(err) ? 10000 : 5000);
     }
   } finally {
     isGenerating = false;

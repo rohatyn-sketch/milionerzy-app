@@ -2,6 +2,8 @@ import { Router, type IRouter } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { generatePodcast, lookupPodcasts } from '../services/podcast.service';
 import { isBlocked } from '../services/moderation';
+import { isAiRefused } from '../spend/errors';
+import { checkAiRateLimit } from '../spend/rate-limit';
 
 const router: IRouter = Router();
 
@@ -22,7 +24,7 @@ router.post('/generate', authMiddleware, async (req: AuthRequest, res) => {
       return;
     }
 
-    const result = await generatePodcast(req.uid!, {
+    const result = await generatePodcast(req.uid!, () => checkAiRateLimit(req.uid!), {
       questionText,
       category: category || '',
       correctAnswer,
@@ -31,6 +33,10 @@ router.post('/generate', authMiddleware, async (req: AuthRequest, res) => {
 
     res.json(result);
   } catch (err: any) {
+    if (isAiRefused(err)) {
+      res.status(err.status).json(err.toResponse());
+      return;
+    }
     console.error('[Podcast] Generation error:', err.message);
     res.status(500).json({ error: 'Podcast generation failed' });
   }

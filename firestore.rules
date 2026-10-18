@@ -33,5 +33,14 @@ service cloud.firestore {
     match /podcastCache/{hash} {
       allow read, write: if false;
     }
+
+    // AI spend ledger and spend-cap config: backend (admin SDK) only. Users see
+    // their own budget through GET /api/ai-budget.
+    match /spendLedger/{document=**} {
+      allow read, write: if false;
+    }
+    match /config/{document=**} {
+      allow read, write: if false;
+    }
   }
 }

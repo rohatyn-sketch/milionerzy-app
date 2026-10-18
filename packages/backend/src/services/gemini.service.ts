@@ -1,4 +1,6 @@
 import { findBlockedTerm, filterQuestions } from './moderation';
+import { callGemini } from '../spend/ai-client';
+import { isAiRefused } from '../spend/errors';
 
 export function buildPrompt(className: string, context?: string, hasImage?: boolean): string {
   return `Jestes ekspertem od tworzenia pytan quizowych. Wygeneruj pytania do quizu "Milionerzy" na temat: "${className}".
@@ -119,6 +121,7 @@ function failOpenEnabled(): boolean {
  *   2. the Gemini moderator, retried, for everything requiring judgement
  */
 export async function moderateTopic(
+  uid: string,
   className: string,
   context?: string,
   imageBase64?: string,
@@ -137,7 +140,6 @@ export async function moderateTopic(
   }
 
   // Layer 2 - AI judgement, retried so one bad round-trip is not a verdict.
-  const key = process.env.GEMINI_API_KEY || '';
   const prompt = buildModerationPrompt(className, context, !!(imageBase64 && mimeType));
 
   const parts: any[] = [{ text: prompt }];
@@ -147,47 +149,39 @@ export async function moderateTopic(
 
   for (let attempt = 1; attempt <= MODERATION_ATTEMPTS; attempt++) {
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
+      const data = await callGemini(
+        { uid, feature: 'moderation' },
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts }],
-            // gemini-3-flash is a thinking model: it spends output tokens on
-            // internal reasoning before the answer. thinkingLevel 'low' keeps it
-            // cheap, and 1024 tokens leaves room so the JSON verdict is never
-            // truncated.
-            generationConfig: {
-              temperature: 0,
-              maxOutputTokens: 1024,
-              thinkingConfig: { thinkingLevel: 'low' },
-            },
-          }),
+          parts,
+          // gemini-3-flash is a thinking model: it spends output tokens on
+          // internal reasoning before the answer. thinkingLevel 'low' keeps it
+          // cheap, and 1024 tokens leaves room so the JSON verdict is never
+          // truncated.
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 1024,
+            thinkingConfig: { thinkingLevel: 'low' },
+          },
         }
       );
 
-      if (!response.ok) {
-        const err = await response.text();
-        console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} API error ${response.status} - ${err}`);
-      } else {
-        const data = await response.json();
-        const candidate = data.candidates?.[0];
-        const text = candidate?.content?.parts?.[0]?.text;
+      const candidate = data.candidates?.[0];
+      const text = candidate?.content?.parts?.[0]?.text;
 
-        // A MAX_TOKENS cutoff means the verdict may be half-written; retry
-        // instead of trusting a partial answer.
-        if (candidate?.finishReason === 'MAX_TOKENS') {
-          console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} truncated verdict`);
-        } else if (!text) {
-          console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} empty response`);
-        } else {
-          const verdict = parseModeration(text);
-          if (verdict) return { ...verdict, source: 'ai' };
-          console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} unparseable verdict`);
-        }
+      // A MAX_TOKENS cutoff means the verdict may be half-written; retry
+      // instead of trusting a partial answer.
+      if (candidate?.finishReason === 'MAX_TOKENS') {
+        console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} truncated verdict`);
+      } else if (!text) {
+        console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} empty response`);
+      } else {
+        const verdict = parseModeration(text);
+        if (verdict) return { ...verdict, source: 'ai' };
+        console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} unparseable verdict`);
       }
     } catch (err: any) {
+      // A budget refusal is final — retrying would only be refused again.
+      if (isAiRefused(err)) throw err;
       console.warn(`[Moderation] attempt ${attempt}/${MODERATION_ATTEMPTS} request failed:`, err?.message);
     }
 
@@ -245,12 +239,12 @@ export function parseResponse(text: string): any[] {
 }
 
 export async function generateWithGemini(
+  uid: string,
   className: string,
   context?: string,
   imageBase64?: string,
   mimeType?: string
 ): Promise<any[]> {
-  const key = process.env.GEMINI_API_KEY || '';
   const prompt = buildPrompt(className, context, !!(imageBase64 && mimeType));
 
   const parts: any[] = [{ text: prompt }];
@@ -258,24 +252,11 @@ export async function generateWithGemini(
     parts.push({ inlineData: { mimeType, data: imageBase64 } });
   }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 65536 },
-      }),
-    }
+  const data = await callGemini(
+    { uid, feature: 'questions' },
+    { parts, generationConfig: { temperature: 0.7, maxOutputTokens: 65536 } }
   );
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini API error: ${response.status} - ${err}`);
-  }
-
-  const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('Empty response from Gemini');
 

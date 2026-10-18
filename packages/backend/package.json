@@ -9,7 +9,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "start": "node dist/index.js",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "spend-report": "tsc && node dist/scripts/spend-report.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^6.4.0",

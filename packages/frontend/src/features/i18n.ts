@@ -368,6 +368,16 @@ const EN: Record<string, string> = {
   'learn.msg4': 'Recording the podcast...',
   'learn.msg5': 'Almost ready...',
 
+  // AI budget / rate-limit refusals (see features/ai-budget.ts)
+  'ai.globalBudgetUntil': "AI generation is paused until {date} — this free app's monthly AI budget is used up. Existing question sets, the leaderboard and your progress still work.",
+  'ai.globalBudget': "AI generation is paused for now — this free app's AI budget is used up. Existing question sets, the leaderboard and your progress still work.",
+  'ai.userBudgetUntil': "You've used your AI generation allowance for this month. It renews on {date}. You can keep playing your question sets.",
+  'ai.userBudget': "You've used your AI generation allowance. You can keep playing your question sets.",
+  'ai.disabled': 'AI features are switched off for now. Existing question sets, the leaderboard and your progress still work.',
+  'ai.unavailable': "We can't check the AI allowance right now. Please try again in a moment.",
+  'ai.rateLimitedIn': 'Too many AI requests at once. Try again in {s} s.',
+  'ai.rateLimited': 'Too many AI requests at once. Wait a moment and try again.',
+
   // Audio player (podcast)
   'audio.playPause': 'Play/Pause',
   'audio.speed': 'Playback speed',
