@@ -98,6 +98,9 @@ milionerzy/
 | GET | `/api/criteria` | No | List cached question sets |
 | GET | `/api/leaderboard` | No | Top 10 scores |
 | POST | `/api/leaderboard` | Yes | Submit score |
+| POST | `/api/podcast/generate` | Yes | Generate a podcast (Gemini + Cloud TTS) |
+| POST | `/api/podcast/lookup` | Yes | Find cached podcasts |
+| GET | `/api/ai-budget` | Yes | The signed-in user's own AI budget for the period |
 
 ### Services
 
@@ -112,11 +115,38 @@ milionerzy/
 
 ### AI Question Generation
 
-- **Model:** `gemini-3-flash-preview` via REST API
+- **Model:** `gemini-3-flash-preview` via REST API (through the spend guard, see AI Spend Protection)
 - **Output:** 65 questions per class (55 multiple choice + 10 true/false)
 - **Input:** Class name, optional context text, optional image (criteria screenshot)
 - **Image support:** When image is provided, prompt instructs model to analyze it and generate questions based on the image content
 - **Caching:** Questions cached in Firestore `questionCache` collection
+
+### AI Spend Protection
+
+Every paid AI call (Gemini `generateContent`, Cloud TTS) goes through one choke
+point, `packages/backend/src/spend/ai-client.ts`, which reserves a worst-case
+cost in a Firestore ledger, makes the call, then records the real cost from
+`usageMetadata` (tokens x price in `spend/pricing.ts`).
+
+| Setting | Default | Where to change |
+|---------|---------|-----------------|
+| Global cap | $80 per calendar month (UTC) | Firestore `config/spend.globalCapUsd` or env `SPEND_GLOBAL_CAP_USD` |
+| Per-user cap | $10 per calendar month | `config/spend.userCapUsd` / `SPEND_USER_CAP_USD` |
+| Period | `monthly` | `config/spend.period` (`monthly` or `lifetime`) / `SPEND_PERIOD` |
+| Kill switch | AI on | `config/spend.aiEnabled` (`false` = all AI refused) / `AI_ENABLED` |
+| Rate limit | 3/min, 20/hour per user | env `AI_RATE_LIMIT_PER_MINUTE`, `AI_RATE_LIMIT_PER_HOUR` |
+
+- Ledger docs: `spendLedger/{YYYY-MM}` (app) and `spendLedger/{YYYY-MM}/users/{uid}`.
+- Refusals return `{ error, code, resetsAt? }` with codes from `AI_ERROR_CODES`
+  (shared); the frontend shows a localized message (`features/ai-budget.ts`).
+- Fails closed: if the ledger or config cannot be read, AI calls are refused.
+- Cached question sets and podcasts are served without any AI call, so they keep
+  working when the budget is spent.
+- Owner report / cap changes: `pnpm spend-report` (see `src/scripts/spend-report.ts`).
+- Billing backstop: `terraform/modules/billing_guard` (monthly budget, Pub/Sub,
+  kill-switch function), off until `enable_billing_guard = true`.
+- Gemini is billed to the AI Studio project `gen-lang-client-0089604349` (which
+  owns the API key), not to `milionerzy-487910`.
 
 ---
 
@@ -218,6 +248,7 @@ questionCache/{cacheKey}
 | `storage` | GCS buckets (functions-source, uploads with CORS) |
 | `functions` | Cloud Run SA, GitHub Actions SA, Artifact Registry, Workload Identity Federation |
 | `hosting` | Firebase Hosting site (milionerzy) |
+| `billing_guard` | Monthly AI billing budget, Pub/Sub alerts topic, kill-switch Cloud Function (opt-in via `enable_billing_guard`) |
 
 ### Service Accounts
 
