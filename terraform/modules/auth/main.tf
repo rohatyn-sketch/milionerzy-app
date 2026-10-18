@@ -6,6 +6,8 @@ resource "google_identity_platform_config" "default" {
     "localhost",
     "milionerzy.web.app",
     "milionerzy.firebaseapp.com",
+    "edufiszka.app",
+    "www.edufiszka.app",
     "${var.project_id}.firebaseapp.com",
     "${var.project_id}.web.app",
   ]
