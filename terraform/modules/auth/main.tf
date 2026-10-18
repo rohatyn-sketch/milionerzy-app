@@ -7,6 +7,7 @@ resource "google_identity_platform_config" "default" {
     "milionerzy.web.app",
     "milionerzy.firebaseapp.com",
     "milionerzy.app",
+    "www.milionerzy.app",
     "edufiszka.app",
     "www.edufiszka.app",
     "${var.project_id}.firebaseapp.com",
