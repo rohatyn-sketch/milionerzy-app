@@ -15,7 +15,8 @@ export function renderPracticeButton(loggedIn: boolean): void {
   const incorrect = loggedIn ? storage.getIncorrectCount() : 0;
   const enabled = loggedIn && incorrect > 0;
 
-  count.textContent = `(${incorrect})`;
+  count.textContent = incorrect > 0 ? String(incorrect) : '';
+  count.hidden = incorrect === 0;
   btn.classList.toggle('disabled', !enabled);
   btn.title = '';
   if (enabled) {

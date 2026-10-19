@@ -30,7 +30,7 @@ test.describe('Question count slider', () => {
     expect(stored).toBe('7');
 
     // Start a game and confirm the round has exactly 7 questions.
-    await page.locator('.menu-buttons a.btn-primary', { hasText: 'Graj' }).click();
+    await page.locator('#play-controls a.btn-primary', { hasText: 'Graj' }).click();
     await page.waitForURL('**/game.html');
     await expect(page.locator('#question-number')).toContainText('/7');
   });

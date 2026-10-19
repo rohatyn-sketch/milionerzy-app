@@ -32,6 +32,29 @@ interface TourOptions {
 
 let activeTour: Tour | null = null;
 
+// True when the element sits in a fixed or sticky bar (the app bar, the phone
+// tab bar): scrolling the page doesn't move it, so we don't scroll for it.
+function isPinned(el: HTMLElement): boolean {
+  for (let n: HTMLElement | null = el; n; n = n.parentElement) {
+    const pos = getComputedStyle(n).position;
+    if (pos === 'fixed' || pos === 'sticky') return true;
+  }
+  return false;
+}
+
+// Height of the sticky app bar at the top and the fixed tab bar at the bottom
+// (phones), so a scrolled-to element doesn't end up hidden behind them.
+function pinnedInsets(): { top: number; bottom: number } {
+  const vh = window.innerHeight;
+  let top = 0;
+  let bottom = 0;
+  const bar = document.querySelector<HTMLElement>('.app-bar');
+  if (bar && getComputedStyle(bar).position === 'sticky') top = Math.max(0, bar.getBoundingClientRect().bottom);
+  const nav = document.querySelector<HTMLElement>('.app-nav');
+  if (nav && getComputedStyle(nav).position === 'fixed') bottom = Math.max(0, vh - nav.getBoundingClientRect().top);
+  return { top, bottom };
+}
+
 class Tour {
   private steps: TourStep[];
   private opts: TourOptions;
@@ -139,7 +162,7 @@ class Tour {
     this.overlay.dataset.target = step.target ?? '';
 
     const target = step.target ? document.querySelector<HTMLElement>(step.target) : null;
-    if (target) this.scrollIntoViewWithTooltip(target);
+    if (target && !isPinned(target)) this.scrollIntoViewWithTooltip(target);
     // Position after a frame so scrollIntoView and layout settle.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => this.positionForCurrentStep());
@@ -154,13 +177,14 @@ class Tour {
   private scrollIntoViewWithTooltip(target: HTMLElement): void {
     const rect = target.getBoundingClientRect();
     const tipHeight = this.tooltip.getBoundingClientRect().height;
-    const vh = window.innerHeight;
+    const insets = pinnedInsets();
+    const vh = window.innerHeight - insets.top - insets.bottom;
     const pad = 8;
     const margin = 14;
     const needed = rect.height + pad * 2 + margin + tipHeight;
-    const desiredTop = needed + margin * 2 <= vh
+    const desiredTop = insets.top + (needed + margin * 2 <= vh
       ? Math.max(margin + pad, (vh - needed) / 2 + pad)
-      : Math.max(pad, (vh - rect.height) / 2);
+      : Math.max(pad, (vh - rect.height) / 2));
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: window.scrollY + rect.top - desiredTop, behavior: reduce ? 'auto' : 'smooth' });
   }
@@ -261,6 +285,9 @@ class Tour {
 // --- Menu tour -------------------------------------------------------------
 
 function menuSteps(): TourStep[] {
+  // The Start page is laid out as "1 choose a subject -> 2 play", with
+  // navigation and the wallet always visible, so the tour only points out
+  // those few landmarks (the practice button explains itself in text).
   return [
     {
       title: t('onb.welcome.title', 'Witaj w EduFiszka!'),
@@ -269,27 +296,22 @@ function menuSteps(): TourStep[] {
     {
       target: '#class-selector',
       title: t('onb.class.title', 'Wybierz przedmiot'),
-      text: t('onb.class.text', 'Tutaj wybierasz klase lub przedmiot, z ktorego chcesz grac. Po zalogowaniu mozesz tez dodac wlasny zestaw pytan.'),
+      text: t('onb.class2.text', 'Krok 1: wybierz przedmiot, z ktorego chcesz grac. Przyciskiem "Dodaj klase" stworzysz wlasny zestaw pytan z AI (po zalogowaniu).'),
     },
     {
-      target: '#question-count-control',
-      title: t('onb.count.title', 'Liczba pytan'),
-      text: t('onb.count.text', 'Suwakiem ustawiasz, ile pytan chcesz w jednej grze. Mniej pytan to szybsza gra.'),
-    },
-    {
-      target: '.menu-buttons .btn-primary',
+      target: '#play-controls',
       title: t('onb.play.title', 'Zagraj'),
-      text: t('onb.play.text', 'Przycisk "Graj" rozpoczyna gre z pytaniami z wybranego przedmiotu.'),
+      text: t('onb.play2.text', 'Krok 2: suwakiem ustaw liczbe pytan i nacisnij "Graj". Mniej pytan to szybsza gra.'),
     },
     {
-      target: '.money-display',
+      target: '#wallet-chip',
       title: t('onb.money.title', 'Twoje pieniadze'),
-      text: t('onb.money.text', 'Za poprawne odpowiedzi zdobywasz pieniadze. Mozesz je wydac w sklepie na kola ratunkowe i motywy.'),
+      text: t('onb.money2.text', 'Za poprawne odpowiedzi zdobywasz pieniadze. Stan konta widzisz zawsze tutaj, a wydasz je w Sklepie na kola ratunkowe i motywy.'),
     },
     {
-      target: '#practice-btn',
-      title: t('onb.practice.title', 'Tryb cwiczen'),
-      text: t('onb.practice.text', 'Pytania, w ktorych sie pomylisz, trafiaja tutaj — mozesz je potem przecwiczyc (po zalogowaniu).'),
+      target: '.app-nav',
+      title: t('onb.nav.title', 'Menu'),
+      text: t('onb.nav.text', 'Start to ten ekran. W Postepach zobaczysz osiagniecia i najlepsze wyniki, a w Sklepie wydasz zarobione pieniadze.'),
     },
     {
       title: t('onb.final.title', 'Zagrajmy!'),

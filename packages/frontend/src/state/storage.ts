@@ -98,7 +98,11 @@ export const storage = {
 
   // Money
   getMoney(): number | null { return getInt(KEYS.MONEY); },
-  setMoney(n: number) { localStorage.setItem(KEYS.MONEY, Math.max(0, n).toString()); },
+  setMoney(n: number) {
+    localStorage.setItem(KEYS.MONEY, Math.max(0, n).toString());
+    // Keeps the wallet in the app bar (ui/app-shell.ts) in sync.
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('edufiszka:money'));
+  },
   addMoney(n: number) {
     this.setMoney((this.getMoney() || 0) + n);
     if (n > 0) this.addTotalEarned(n);

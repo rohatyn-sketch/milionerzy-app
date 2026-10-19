@@ -111,7 +111,8 @@ function mountLangSwitcher(): void {
   const slot = document.getElementById('app-bar-actions');
   if (slot) {
     btn.classList.add('lang-switcher--inline');
-    slot.insertBefore(btn, slot.firstChild);
+    // Order in the bar: [wallet] [language] [sign-in].
+    slot.insertBefore(btn, document.getElementById('auth-area'));
   } else {
     document.body.appendChild(btn);
   }
@@ -124,12 +125,35 @@ const EN: Record<string, string> = {
   'nav.back': '← Back to menu',
   'money.label': 'Your money:',
   'a11y.skip': 'Skip to content',
+  'nav.home': 'Home',
+  'nav.progress': 'Progress',
+  'nav.shop': 'Shop',
+  'nav.label': 'Main navigation',
+  'nav.exitGame': 'End game',
+  'wallet.label': 'Wallet: {money}',
+  'money.labelShort': 'Money',
+
+  // Start page sections
+  'home.subjectTitle': 'Choose a subject',
+  'home.startTitle': 'Play',
+  'home.progressTitle': 'Your progress',
+  'home.progressLink': 'All progress',
+  'home.settingsTitle': 'Settings',
+  'settings.sound': 'Sound',
+  'stats.playedShort': 'Games played',
+  'stats.wonShort': 'Won',
+  'stats.bestStreakShort': 'Best streak',
+
+  // Progress page
+  'progress.title': 'Progress',
+  'progress.subtitle': 'Your stats, achievements and best scores.',
+  'progress.statsTitle': 'Stats',
   'common.close': 'Close',
 
   // Main menu
   'menu.subtitle': 'Pick a class and play!',
   'menu.play': 'Play',
-  'menu.practice': 'Practice',
+  'menu.practice': 'Practice mistakes',
   'menu.shop': 'Shop',
   'menu.formulas': 'Formulas',
   'stats.played': 'Games played:',
@@ -173,7 +197,6 @@ const EN: Record<string, string> = {
   'setup.imageLabel': 'Photo of the success criteria (optional)',
   'setup.authNotice': 'Sign in with a Google account to generate questions.',
   'setup.generate': 'Generate questions',
-  'setup.toggleTitle': 'AI question settings',
   'setup.enterName': 'Enter a subject / class name',
   'setup.generatedN': 'Generated {n} questions!',
   'setup.genLoginTitle': 'Sign in to generate questions',
@@ -190,11 +213,13 @@ const EN: Record<string, string> = {
   'class.default': 'Default',
   'class.questions': '{n} questions',
   'class.add': 'Add class',
+  'class.addHint': 'Your own AI questions',
   'class.deleteTitle': 'Delete class',
   'class.deleteConfirm': 'Are you sure you want to delete the class "{name}"?',
 
   // Auth
   'auth.signIn': 'Sign in with Google',
+  'auth.signInShort': 'Sign in',
   'auth.logout': 'Log out',
   'auth.hint': 'Sign in to save your progress and create new classes',
   'auth.loginError': 'Sign-in error: ',
@@ -242,10 +267,6 @@ const EN: Record<string, string> = {
   'end.practiceLeft': '{n} questions left to review.',
   'end.earned': 'Earned this game: {amount}',
   'end.leaderboardPos': 'Rank #{pos} on the leaderboard!',
-
-  // Login prompt (class selector)
-  'login.title': 'Sign-in required',
-  'login.text': 'To add new classes and generate questions, you must sign in with a Google account.',
 
   // Shop
   'shop.title': 'Shop',
@@ -336,15 +357,13 @@ const EN: Record<string, string> = {
   'onb.welcome.title': 'Welcome to EduFiszka!',
   'onb.welcome.text': "It's a game where you answer questions and earn money. We'll show you how to play in a few steps.",
   'onb.class.title': 'Pick a subject',
-  'onb.class.text': 'Here you choose the class or subject you want to play. Once signed in, you can also add your own question set.',
-  'onb.count.title': 'Number of questions',
-  'onb.count.text': 'Use the slider to set how many questions you want per game. Fewer questions means a quicker game.',
   'onb.play.title': 'Play',
-  'onb.play.text': 'The "Play" button starts a game with questions from the chosen subject.',
   'onb.money.title': 'Your money',
-  'onb.money.text': 'Correct answers earn you money. You can spend it in the shop on lifelines and themes.',
-  'onb.practice.title': 'Practice mode',
-  'onb.practice.text': 'Questions you get wrong land here so you can practice them later (once signed in).',
+  'onb.class2.text': 'Step 1: choose the subject you want to play. With "Add class" you can create your own AI question set (once signed in).',
+  'onb.play2.text': 'Step 2: set the number of questions with the slider and press "Play". Fewer questions means a quicker game.',
+  'onb.money2.text': 'Correct answers earn you money. Your balance is always shown here, and you can spend it in the Shop on lifelines and themes.',
+  'onb.nav.title': 'Menu',
+  'onb.nav.text': 'Home is this screen. Progress shows your achievements and best scores, and the Shop is where you spend your money.',
   'onb.final.title': "Let's play!",
   'onb.final.text': "That's everything you need to start. Click below to begin your first game — we'll finish the tutorial as you go.",
   'onb.final.cta': 'Play now',

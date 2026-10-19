@@ -14,10 +14,14 @@ import { isFirstTimePlayer, startMenuOnboarding } from './features/onboarding';
 import { initI18n, t } from './features/i18n';
 import { renderPracticeButton } from './ui/practice-button';
 import { setupDialog, openDialog } from './ui/dialog';
+import { mountAppShell } from './ui/app-shell';
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   storage.init();
+  // The shell must exist before i18n (language switch slot) and auth
+  // (#auth-area lives in the app bar).
+  mountAppShell('home');
   initI18n();
   initAuth();
   initSound();
@@ -143,11 +147,11 @@ function setupCodeInput(): void {
     if (code === 'Markot') {
       storage.setMoney((storage.getMoney() || 0) + 1000000);
       updateMoneyDisplay();
-      msg.style.color = 'var(--success-color)';
+      msg.className = 'field-message success';
       msg.textContent = t('code.ok', 'Kod poprawny! Otrzymujesz 1 000 000 PLN!');
       input.value = '';
     } else {
-      msg.style.color = 'var(--error-color)';
+      msg.className = 'field-message error';
       msg.textContent = t('code.bad', 'Niepoprawny kod!');
     }
     setTimeout(() => { msg.textContent = ''; }, 3000);

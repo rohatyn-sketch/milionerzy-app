@@ -62,25 +62,20 @@ test.describe('Dialogs', () => {
     await expect(opener).toBeFocused();
   });
 
-  test('add-class panel: named dialog, focus on the name field, Esc closes', async ({ page }) => {
+  test('"Dodaj klase" is the single labelled entry; signed out it shows an inline sign-in', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#setup-toggle').click();
-    await expect(page.getByRole('dialog', { name: 'Dodaj nowa klase' })).toBeVisible();
-    await expect(page.locator('#class-name-input')).toBeFocused();
-    await page.keyboard.press('Escape');
-    await expect(page.locator('#setup-panel')).not.toHaveClass(/active/);
-  });
-
-  test('signed-out "add class" card opens a sign-in dialog that Esc closes', async ({ page }) => {
-    await page.goto('/');
-    const add = page.locator('.class-card-add');
+    await expect(page.locator('.setup-toggle, button[title*="AI"]')).toHaveCount(0);
+    const add = page.getByRole('button', { name: /Dodaj klase/ });
+    await expect(add).toHaveCount(1);
     await add.focus();
     await page.keyboard.press('Enter');
-    const dialog = page.getByRole('dialog', { name: 'Wymagane logowanie' });
-    await expect(dialog).toBeVisible();
-    await expect(page.locator('#login-prompt-signin')).toBeFocused();
-    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Dodaj nowa klase' })).toBeVisible();
+    await expect(page.locator('#setup-signin-btn')).toBeFocused();
+    await expect(page.locator('#auth-notice')).toBeVisible();
+    await expect(page.locator('#generate-btn')).toBeDisabled();
     await expect(page.locator('#login-prompt-overlay')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#setup-panel')).not.toHaveClass(/active/);
     await expect(add).toBeFocused();
   });
 });
@@ -88,16 +83,17 @@ test.describe('Dialogs', () => {
 test.describe('Phone layout (375px)', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
-  test('home: language, sign-in and title do not overlap; no sideways scroll', async ({ page }) => {
+  test('home: wallet, language, sign-in and title do not overlap; no sideways scroll', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('#google-signin-btn')).toBeVisible();
+    const wallet = (await page.locator('#wallet-chip').boundingBox())!;
     const lang = (await page.locator('#lang-switcher').boundingBox())!;
     const signin = (await page.locator('#google-signin-btn').boundingBox())!;
-    const hint = (await page.locator('.auth-hint').boundingBox())!;
     const title = (await page.locator('h1.title').boundingBox())!;
+    expect(overlaps(wallet, lang)).toBe(false);
     expect(overlaps(lang, signin)).toBe(false);
     expect(overlaps(signin, title)).toBe(false);
-    expect(overlaps(hint, title)).toBe(false);
+    expect(signin.x + signin.width).toBeLessThanOrEqual(375);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });
@@ -114,7 +110,7 @@ test.describe('Phone layout (375px)', () => {
 
   test('main controls are at least 44px tall', async ({ page }) => {
     await page.goto('/');
-    for (const sel of ['#lang-switcher', '#google-signin-btn', '#sfx-toggle', '#music-toggle', '#code-input', '#code-btn', '.class-card-select', '.class-card-add', '#setup-toggle', 'a.btn-primary', '#daily-btn']) {
+    for (const sel of ['#lang-switcher', '#google-signin-btn', '#sfx-toggle', '#music-toggle', '#code-input', '#code-btn', '.class-card-select', '.class-card-add', '#setup-toggle', 'a.btn-primary', '#daily-btn', '#wallet-chip', '.app-nav-link']) {
       const box = (await page.locator(sel).first().boundingBox())!;
       expect(box.height, sel).toBeGreaterThanOrEqual(44);
     }
