@@ -11,7 +11,8 @@
     "build:frontend": "pnpm --filter @milionerzy/frontend build",
     "deploy:functions": "firebase deploy --only functions",
     "deploy:hosting": "firebase deploy --only hosting",
-    "deploy": "pnpm build && firebase deploy"
+    "deploy": "pnpm build && firebase deploy",
+    "spend-report": "pnpm --filter @milionerzy/backend spend-report"
   },
   "engines": {
     "node": ">=20.0.0"

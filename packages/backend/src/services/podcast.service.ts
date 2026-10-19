@@ -2,6 +2,7 @@ import { createHash } from 'crypto';
 import { db } from '../config';
 import { getStorage } from 'firebase-admin/storage';
 import { COLLECTIONS } from '../firestore/collections';
+import { callGemini, withTtsBudget } from '../spend/ai-client';
 
 const PODCAST_BUCKET = process.env.PODCAST_BUCKET || 'milionerzy-487910-podcasts';
 const PODCAST_CACHE_COLLECTION = 'podcastCache';
@@ -96,8 +97,7 @@ export async function lookupPodcasts(questionTexts: string[]): Promise<Record<st
 }
 
 // Step 1: Generate educational content via Gemini
-async function generateContent(req: PodcastRequest): Promise<string> {
-  const key = process.env.GEMINI_API_KEY || '';
+async function generateContent(uid: string, req: PodcastRequest): Promise<string> {
 
   const prompt = `Jestes ekspertem edukacyjnym. Uczeń odpowiedzial blednie na pytanie quizowe i potrzebuje pomocy w zrozumieniu tematu.
 
@@ -116,32 +116,17 @@ Napisz zwiezly material edukacyjny (400-600 slow) na temat tego pytania. Wymagan
 
 Odpowiedz TYLKO materialem edukacyjnym, bez dodatkowego formatowania.`;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-      }),
-    }
+  const data = await callGemini(
+    { uid, feature: 'podcast-content' },
+    { parts: [{ text: prompt }], generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } }
   );
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini content generation failed: ${response.status} - ${err}`);
-  }
-
-  const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('Empty content from Gemini');
   return text;
 }
 
 // Step 2: Convert content to podcast script via Gemini
-async function generateScript(content: string, category: string): Promise<{ lines: ScriptLine[]; title: string }> {
-  const key = process.env.GEMINI_API_KEY || '';
+async function generateScript(uid: string, content: string, category: string): Promise<{ lines: ScriptLine[]; title: string }> {
 
   const prompt = `Przeksztalc ponizszy material edukacyjny w scenariusz podcastu. Podcast to rozmowa dwoch osob:
 - Host: prowadzacy, ciekawy, zadaje pytania, zartuje
@@ -168,24 +153,10 @@ Zwroc JSON (TYLKO tablice, bez dodatkowego tekstu):
   ]
 }`;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.8, maxOutputTokens: 8192 },
-      }),
-    }
+  const data = await callGemini(
+    { uid, feature: 'podcast-script' },
+    { parts: [{ text: prompt }], generationConfig: { temperature: 0.8, maxOutputTokens: 8192 } }
   );
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini script generation failed: ${response.status} - ${err}`);
-  }
-
-  const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('Empty script from Gemini');
 
@@ -204,7 +175,13 @@ Zwroc JSON (TYLKO tablice, bez dodatkowego tekstu):
 }
 
 // Step 3: Synthesize audio via Google Cloud TTS
-async function synthesizeAudio(lines: ScriptLine[]): Promise<{ audioBuffer: Buffer; duration: number }> {
+async function synthesizeAudio(uid: string, lines: ScriptLine[]): Promise<{ audioBuffer: Buffer; duration: number }> {
+  // Cloud TTS bills per input character; we know the exact count up front.
+  const characters = lines.reduce((sum, l) => sum + l.text.length, 0);
+  return withTtsBudget({ uid, feature: 'podcast-tts' }, characters, () => synthesizeLines(lines));
+}
+
+async function synthesizeLines(lines: ScriptLine[]): Promise<{ audioBuffer: Buffer; duration: number }> {
   const { TextToSpeechClient } = await import('@google-cloud/text-to-speech');
   const ttsClient = new TextToSpeechClient();
 
@@ -289,7 +266,12 @@ async function uploadAndCache(
   return audioUrl;
 }
 
-export async function generatePodcast(uid: string, req: PodcastRequest): Promise<PodcastResult> {
+export async function generatePodcast(
+  uid: string,
+  /** Called only when a new podcast must be generated (cache miss). */
+  beforePaidWork: () => void,
+  req: PodcastRequest
+): Promise<PodcastResult> {
   // Check global cache first (shared across all users)
   const cached = await findGlobalPodcast(req.questionText);
   if (cached) {
@@ -298,11 +280,12 @@ export async function generatePodcast(uid: string, req: PodcastRequest): Promise
     return cached;
   }
 
-  // Generate content → script → audio
-  const content = await generateContent(req);
-  const { lines, title } = await generateScript(content, req.category);
+  // Generate content → script → audio (paid: rate-limited and budgeted)
+  beforePaidWork();
+  const content = await generateContent(uid, req);
+  const { lines, title } = await generateScript(uid, content, req.category);
   const scriptText = lines.map(l => `${l.speaker}: ${l.text}`).join('\n');
-  const { audioBuffer, duration } = await synthesizeAudio(lines);
+  const { audioBuffer, duration } = await synthesizeAudio(uid, lines);
 
   const podcastId = questionHash(req.questionText);
   const audioUrl = await uploadAndCache(podcastId, audioBuffer, title, duration, scriptText, req.questionText, req.category);

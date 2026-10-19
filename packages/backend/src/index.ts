@@ -7,6 +7,7 @@ import generateRoutes from './routes/generate';
 import criteriaRoutes from './routes/criteria';
 import leaderboardRoutes from './routes/leaderboard';
 import podcastRoutes from './routes/podcast';
+import aiBudgetRoutes from './routes/ai-budget';
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/generate', generateRoutes);
 app.use('/api/criteria', criteriaRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/podcast', podcastRoutes);
+app.use('/api/ai-budget', aiBudgetRoutes);
 
 app.use(errorHandler);
 

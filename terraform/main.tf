@@ -3,6 +3,7 @@ terraform {
   required_providers {
     google      = { source = "hashicorp/google", version = ">= 5.0" }
     google-beta = { source = "hashicorp/google-beta", version = ">= 5.0" }
+    archive     = { source = "hashicorp/archive", version = ">= 2.4" }
   }
 }
 
@@ -77,4 +78,25 @@ module "hosting" {
   project_id = var.project_id
   site_id    = "milionerzy"
   depends_on = [module.firebase]
+}
+
+# AI spend backstop: monthly Cloud Billing budget + kill switch. Disabled until
+# the owner completes the manual IAM prerequisites (grant the Terraform identity
+# github-deployer@milionerzy-487910.iam.gserviceaccount.com "Billing Account
+# Costs Manager" on the billing account and "Project IAM Admin" on
+# gen-lang-client-0089604349), then set
+# enable_billing_guard = true (see the PR description / runbook).
+module "billing_guard" {
+  source                  = "./modules/billing_guard"
+  enabled                 = var.enable_billing_guard
+  project_id              = var.project_id
+  region                  = var.region
+  billing_account_id      = var.billing_account_id
+  app_project_number      = var.app_project_number
+  gemini_project_id       = var.gemini_project_id
+  gemini_project_number   = var.gemini_project_number
+  budget_amount           = var.ai_budget_amount
+  budget_currency         = var.ai_budget_currency
+  kill_mode               = var.ai_budget_kill_mode
+  functions_source_bucket = module.storage.functions_source_bucket
 }

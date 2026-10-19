@@ -1,5 +1,6 @@
 import { storage } from '../state/storage';
 import { generateQuestions } from '../api/generate.api';
+import { aiRefusalMessage } from '../features/ai-budget';
 import { setQuestions } from '../features/questions';
 import { renderClassCards } from './class-selector';
 import { t } from '../features/i18n';
@@ -176,7 +177,7 @@ export function setupGenerateButton(onGenerated?: () => void): void {
       const toggleBtn = document.getElementById('setup-toggle');
       if (toggleBtn) toggleBtn.classList.add('has-questions');
     } catch (err: any) {
-      if (statusEl) { statusEl.textContent = err.message; statusEl.className = 'generate-status error'; }
+      if (statusEl) { statusEl.textContent = aiRefusalMessage(err) ?? err.message; statusEl.className = 'generate-status error'; }
     } finally {
       generateBtn.disabled = false;
       if (loadingOverlay) loadingOverlay.classList.remove('active');
