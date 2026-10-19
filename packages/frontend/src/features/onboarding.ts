@@ -55,6 +55,9 @@ class Tour {
   start(): void {
     if (activeTour) activeTour.teardown();
     activeTour = this;
+    // Extra room at the bottom so any element can be scrolled up far enough
+    // to leave space for the tooltip, even at the end of a short page.
+    document.body.classList.add('tour-open');
     this.build();
     this.opts.onStart?.();
     this.showStep(0);
@@ -131,16 +134,35 @@ class Tour {
       dot.classList.toggle('done', di < i);
     });
 
+    // Expose the step for tests and tooling (which element is highlighted).
+    this.overlay.dataset.step = String(i + 1);
+    this.overlay.dataset.target = step.target ?? '';
+
     const target = step.target ? document.querySelector<HTMLElement>(step.target) : null;
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-    }
+    if (target) this.scrollIntoViewWithTooltip(target);
     // Position after a frame so scrollIntoView and layout settle.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => this.positionForCurrentStep());
     });
 
     this.nextBtn.focus();
+  }
+
+  // Scroll so the highlighted element AND the tooltip under it both fit on
+  // screen. (Centring the element alone left no room for the tooltip on
+  // phones, so it covered part of the element, e.g. answer D.)
+  private scrollIntoViewWithTooltip(target: HTMLElement): void {
+    const rect = target.getBoundingClientRect();
+    const tipHeight = this.tooltip.getBoundingClientRect().height;
+    const vh = window.innerHeight;
+    const pad = 8;
+    const margin = 14;
+    const needed = rect.height + pad * 2 + margin + tipHeight;
+    const desiredTop = needed + margin * 2 <= vh
+      ? Math.max(margin + pad, (vh - needed) / 2 + pad)
+      : Math.max(pad, (vh - rect.height) / 2);
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: window.scrollY + rect.top - desiredTop, behavior: reduce ? 'auto' : 'smooth' });
   }
 
   private positionForCurrentStep(): void {
@@ -231,6 +253,7 @@ class Tour {
     window.removeEventListener('scroll', this.reposition, true);
     document.removeEventListener('keydown', this.onKeyDown, true);
     this.overlay.remove();
+    document.body.classList.remove('tour-open');
     if (activeTour === this) activeTour = null;
   }
 }
@@ -379,6 +402,10 @@ export function finishOnboarding(): void {
         nextLabel: t('onb.done.cta', 'Super!'),
       },
     ],
-    { allowSkip: false },
+    {
+      allowSkip: false,
+      // Hand keyboard focus back to the end screen's first action.
+      onComplete: () => document.querySelector<HTMLElement>('#end-screen.active .end-buttons a')?.focus(),
+    },
   ).start();
 }

@@ -27,6 +27,7 @@ function updateMoneyDisplay() {
 
 function showMessage(text: string) {
   const msg = document.createElement('div');
+  msg.setAttribute('role', 'status');
   msg.style.cssText = 'position:fixed;top:20px;right:20px;background:var(--success-color);color:black;padding:15px 25px;border-radius:10px;font-weight:bold;z-index:1000;animation:fadeIn 0.3s ease';
   msg.textContent = text;
   document.body.appendChild(msg);

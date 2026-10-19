@@ -4,6 +4,7 @@ import { isLoggedIn, signIn } from '../auth/auth';
 import { immediateSave } from '../state/sync';
 import { deleteClassOnServer } from '../api/class.api';
 import { t } from '../features/i18n';
+import { openDialog, setupDialog, closeDialog } from './dialog';
 
 let savedOnUpdate: (() => void) | undefined;
 
@@ -26,25 +27,32 @@ export function renderClassCards(onUpdate?: () => void): void {
   const loggedIn = isLoggedIn();
   container.innerHTML = '';
 
+  // Each card holds a real <button> (keyboard and screen-reader operable;
+  // aria-pressed tells which subject is chosen) plus, for custom classes, a
+  // separate labelled delete button. Before, the card was a clickable <div>
+  // that keyboard users could not reach.
   registry.forEach(cls => {
     // Hide non-default classes when logged out
     if (!cls.isDefault && !loggedIn) return;
 
+    const isActive = cls.id === activeId;
     const card = document.createElement('div');
-    card.className = 'class-card' + (cls.id === activeId ? ' active' : '');
+    card.className = 'class-card' + (isActive ? ' active' : '');
     card.dataset.classId = cls.id;
 
-    let inner = `<div class="class-card-name">${escapeHtml(cls.name)}</div>`;
-    inner += `<div class="class-card-info">${t('class.questions', '{n} pytan', { n: cls.questionCount || 0 })}</div>`;
-    if (cls.isDefault) {
-      inner += `<div class="class-card-badge">${t('class.default', 'Domyslna')}</div>`;
-    } else {
-      inner += `<button class="class-card-delete" title="${t('class.deleteTitle', 'Usun klase')}">&times;</button>`;
+    let inner = `
+      <button type="button" class="class-card-select" aria-pressed="${isActive}">
+        <span class="class-card-name">${escapeHtml(cls.name)}</span>
+        <span class="class-card-info">${t('class.questions', '{n} pytan', { n: cls.questionCount || 0 })}</span>
+        ${cls.isDefault ? `<span class="class-card-badge">${t('class.default', 'Domyslna')}</span>` : ''}
+      </button>`;
+    if (!cls.isDefault) {
+      const label = `${t('class.deleteTitle', 'Usun klase')}: ${escapeHtml(cls.name)}`;
+      inner += `<button type="button" class="class-card-delete" title="${label}" aria-label="${label}">&times;</button>`;
     }
     card.innerHTML = inner;
 
-    card.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).classList.contains('class-card-delete')) return;
+    card.querySelector('.class-card-select')!.addEventListener('click', () => {
       selectClass(cls.id, effectiveOnUpdate);
     });
 
@@ -60,12 +68,14 @@ export function renderClassCards(onUpdate?: () => void): void {
     container.appendChild(card);
   });
 
-  // Add "+" card
-  const addCard = document.createElement('div');
+  // Add "+" card (a real button, so it is keyboard operable)
+  const addCard = document.createElement('button');
+  addCard.type = 'button';
   addCard.className = 'class-card class-card-add';
+  addCard.setAttribute('aria-haspopup', 'dialog');
   addCard.innerHTML = `
-    <div class="class-card-add-icon">+</div>
-    <div class="class-card-add-text">${t('class.add', 'Dodaj klase')}</div>
+    <span class="class-card-add-icon" aria-hidden="true">+</span>
+    <span class="class-card-add-text">${t('class.add', 'Dodaj klase')}</span>
   `;
   addCard.addEventListener('click', () => {
     if (!isLoggedIn()) {
@@ -73,7 +83,7 @@ export function renderClassCards(onUpdate?: () => void): void {
       return;
     }
     const panel = document.getElementById('setup-panel');
-    if (panel) panel.classList.add('active');
+    if (panel) openDialog(panel, { initialFocus: document.getElementById('class-name-input') });
   });
   container.appendChild(addCard);
 }
@@ -86,12 +96,12 @@ function showLoginPrompt(): void {
   overlay.id = 'login-prompt-overlay';
   overlay.className = 'login-prompt-overlay';
   overlay.innerHTML = `
-    <div class="login-prompt-box">
-      <button class="login-prompt-close" id="login-prompt-close">&times;</button>
-      <h3 class="login-prompt-title">${t('login.title', 'Wymagane logowanie')}</h3>
-      <p class="login-prompt-text">${t('login.text', 'Aby dodawac nowe klasy i generowac pytania, musisz sie zalogowac kontem Google.')}</p>
-      <button class="google-signin-btn" id="login-prompt-signin">
-        <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+    <div class="login-prompt-box" role="dialog" aria-modal="true" aria-labelledby="login-prompt-title" aria-describedby="login-prompt-text">
+      <button type="button" class="login-prompt-close" id="login-prompt-close" aria-label="${t('common.close', 'Zamknij')}">&times;</button>
+      <h2 class="login-prompt-title" id="login-prompt-title">${t('login.title', 'Wymagane logowanie')}</h2>
+      <p class="login-prompt-text" id="login-prompt-text">${t('login.text', 'Aby dodawac nowe klasy i generowac pytania, musisz sie zalogowac kontem Google.')}</p>
+      <button type="button" class="google-signin-btn" id="login-prompt-signin">
+        <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -102,16 +112,18 @@ function showLoginPrompt(): void {
     </div>
   `;
 
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) overlay.remove();
-  });
-
   document.body.appendChild(overlay);
 
-  document.getElementById('login-prompt-close')?.addEventListener('click', () => overlay.remove());
+  // Dialog behaviour (focus, Tab trap, Esc, backdrop) from ui/dialog.ts; the
+  // element is removed once it closes.
+  setupDialog(overlay, document.getElementById('login-prompt-close'));
+  openDialog(overlay, {
+    initialFocus: document.getElementById('login-prompt-signin'),
+    onClose: () => overlay.remove(),
+  });
   document.getElementById('login-prompt-signin')?.addEventListener('click', () => {
-    overlay.remove();
     signIn();
+    closeDialog(overlay);
   });
 }
 
@@ -119,6 +131,8 @@ function selectClass(classId: string, onUpdate?: () => void): void {
   storage.setActiveClass(classId);
   loadQuestionsForClass(classId);
   renderClassCards(onUpdate);
+  // The cards were re-rendered; keep keyboard focus on the chosen one.
+  document.querySelector<HTMLElement>(`.class-card[data-class-id="${classId}"] .class-card-select`)?.focus();
   onUpdate?.();
 }
 

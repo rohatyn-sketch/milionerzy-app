@@ -4,6 +4,7 @@ import { aiRefusalMessage } from '../features/ai-budget';
 import { setQuestions } from '../features/questions';
 import { renderClassCards } from './class-selector';
 import { t } from '../features/i18n';
+import { setupDialog, openDialog, closeDialog, isDialogOpen } from './dialog';
 
 let uploadedImageBase64: string | null = null;
 let uploadedImageMimeType: string | null = null;
@@ -20,21 +21,11 @@ export function setupSetupPanel(): void {
     toggleBtn.classList.add('has-questions');
   }
 
-  toggleBtn.addEventListener('click', () => panel.classList.toggle('active'));
-
-  closeBtn?.addEventListener('click', () => panel.classList.remove('active'));
-
-  // Close when clicking the backdrop (outside inner panel)
-  panel.addEventListener('click', (e) => {
-    if (e.target === panel) {
-      panel.classList.remove('active');
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && panel.classList.contains('active')) {
-      panel.classList.remove('active');
-    }
+  // Close button, backdrop, Esc, focus trap: ui/dialog.ts.
+  setupDialog(panel, closeBtn);
+  toggleBtn.addEventListener('click', () => {
+    if (isDialogOpen(panel)) closeDialog(panel);
+    else openDialog(panel, { initialFocus: document.getElementById('class-name-input') });
   });
 }
 
@@ -47,6 +38,14 @@ export function setupImageUpload(): void {
   uploadArea.addEventListener('click', (e) => {
     if ((e.target as HTMLElement).classList.contains('upload-remove')) return;
     fileInput.click();
+  });
+  // The drop zone is role="button": make it keyboard operable too.
+  uploadArea.addEventListener('keydown', (e) => {
+    if (e.target !== uploadArea) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
   });
 
   fileInput.addEventListener('change', () => {
@@ -94,7 +93,7 @@ function handleImageFile(file: File, uploadArea: HTMLElement): void {
 function showImagePreview(uploadArea: HTMLElement, dataUrl: string): void {
   uploadArea.classList.add('has-image');
   uploadArea.innerHTML = `
-    <button class="upload-remove" title="${t('upload.remove', 'Usun zdjecie')}">&times;</button>
+    <button type="button" class="upload-remove" title="${t('upload.remove', 'Usun zdjecie')}" aria-label="${t('upload.remove', 'Usun zdjecie')}">&times;</button>
     <img src="${dataUrl}" class="upload-preview" alt="${t('upload.previewAlt', 'Podglad')}">
   `;
   uploadArea.querySelector('.upload-remove')!.addEventListener('click', (e) => {
@@ -108,7 +107,7 @@ function clearImage(uploadArea: HTMLElement): void {
   uploadedImageMimeType = null;
   uploadArea.classList.remove('has-image');
   uploadArea.innerHTML = `
-    <div class="upload-icon">&#128247;</div>
+    <div class="upload-icon" aria-hidden="true">&#128247;</div>
     <div class="upload-text">${t('upload.text', 'Kliknij lub przeciagnij zdjecie')}</div>
     <div class="upload-hint">${t('upload.hint', 'Max 4MB - JPG, PNG')}</div>
   `;
@@ -164,7 +163,7 @@ export function setupGenerateButton(onGenerated?: () => void): void {
       renderClassCards(onGenerated);
 
       const panel = document.getElementById('setup-panel');
-      if (panel) panel.classList.remove('active');
+      if (panel) closeDialog(panel);
       classNameInput.value = '';
       contextInput.value = '';
 

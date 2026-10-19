@@ -11,6 +11,7 @@ import { loadProgress, saveProgress } from '../api/progress.api';
 import { storage } from '../state/storage';
 import { scheduleSave } from '../state/sync';
 import { t } from '../features/i18n';
+import { renderPracticeButton } from '../ui/practice-button';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -139,8 +140,8 @@ export async function updateUI(): Promise<void> {
     loginArea.innerHTML = `
       <div class="auth-user">
         <img src="${currentUser.photoURL || ''}" alt="" class="auth-avatar" referrerpolicy="no-referrer">
-        <span class="auth-name">${currentUser.displayName || ''}</span>
-        <button class="auth-logout-btn" id="logout-btn">${t('auth.logout', 'Wyloguj')}</button>
+        <span class="auth-name">${escapeHtml(currentUser.displayName || '')}</span>
+        <button type="button" class="auth-logout-btn" id="logout-btn">${t('auth.logout', 'Wyloguj')}</button>
       </div>
     `;
     document.getElementById('logout-btn')?.addEventListener('click', () => {
@@ -148,8 +149,8 @@ export async function updateUI(): Promise<void> {
     });
   } else {
     loginArea.innerHTML = `
-      <button class="google-signin-btn" id="google-signin-btn">
-        <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+      <button type="button" class="google-signin-btn" id="google-signin-btn" aria-describedby="auth-hint">
+        <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -157,7 +158,7 @@ export async function updateUI(): Promise<void> {
         </svg>
         ${t('auth.signIn', 'Zaloguj przez Google')}
       </button>
-      <p class="auth-hint">${t('auth.hint', 'Zaloguj sie, aby zapisac postepy i tworzyc nowe klasy')}</p>
+      <p class="auth-hint" id="auth-hint">${t('auth.hint', 'Zaloguj sie, aby zapisac postepy i tworzyc nowe klasy')}</p>
     `;
     document.getElementById('google-signin-btn')?.addEventListener('click', () => signIn());
   }
@@ -178,23 +179,11 @@ export async function updateUI(): Promise<void> {
   renderClassCards();
 
   // Update practice button (it depends on auth state)
-  const practiceBtn = document.getElementById('practice-btn') as HTMLAnchorElement | null;
-  const practiceCount = document.getElementById('practice-count');
-  if (practiceBtn && practiceCount) {
-    if (!isLoggedIn()) {
-      practiceCount.textContent = '(0)';
-      practiceBtn.classList.add('disabled');
-      practiceBtn.title = t('practice.loginReq', 'Zaloguj sie, aby korzystac z trybu cwiczen');
-    } else {
-      practiceBtn.title = '';
-      const count = storage.getIncorrectCount();
-      if (count > 0) {
-        practiceCount.textContent = `(${count})`;
-        practiceBtn.classList.remove('disabled');
-      } else {
-        practiceCount.textContent = '(0)';
-        practiceBtn.classList.add('disabled');
-      }
-    }
-  }
+  renderPracticeButton(isLoggedIn());
+}
+
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }

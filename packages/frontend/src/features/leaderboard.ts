@@ -75,7 +75,7 @@ export function renderPreview(containerId: string): void {
   top3.forEach((entry, i) => {
     html += `
       <div class="leaderboard-preview-entry">
-        <span class="leaderboard-medal">${medals[i]}</span>
+        <span class="leaderboard-medal" role="img" aria-label="#${i + 1}">${medals[i]}</span>
         <span class="leaderboard-preview-score">${formatMoney(entry.score)}</span>
       </div>
     `;
