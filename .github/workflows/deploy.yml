@@ -100,3 +100,19 @@ jobs:
         run: npx firebase-tools deploy --only hosting --project ${{ env.PROJECT_ID }}
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+
+      # Post-deploy smoke test against the live site; turns the run red if the release is broken
+      - name: Install Playwright browser
+        run: pnpm --filter @milionerzy/frontend exec playwright install --with-deps chromium
+
+      - name: Smoke test live site
+        run: pnpm --filter @milionerzy/frontend test:smoke
+        env:
+          CI: true
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: smoke-test-results
+          path: packages/frontend/test-results/smoke
+          retention-days: 7
