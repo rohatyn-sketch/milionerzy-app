@@ -14,13 +14,21 @@
     <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
+    <a class="skip-link" href="#main" data-i18n="a11y.skip">Przejdz do tresci</a>
     <div class="spotlight"></div>
     <div class="stars"></div>
 
-    <!-- Auth area - top right -->
-    <div class="auth-area" id="auth-area"></div>
+    <!-- Top bar: language switcher + sign-in in one row (they used to be
+         separate fixed elements that overlapped each other and the title). -->
+    <header class="top-bar">
+        <div class="top-bar-inner">
+            <div class="top-bar-actions" id="app-bar-actions">
+                <div class="auth-area" id="auth-area"></div>
+            </div>
+        </div>
+    </header>
 
-    <div class="container">
+    <main class="container" id="main">
         <div class="menu-container">
             <h1 class="title">EduFiszka</h1>
             <p class="subtitle" id="subtitle-text"></p>
@@ -38,22 +46,23 @@
 
             <div class="menu-buttons">
                 <a href="game.html" class="btn btn-primary" data-i18n="menu.play">Graj</a>
-                <a href="game.html?practice=true" class="btn btn-practice" id="practice-btn"><span data-i18n="menu.practice">Cwicz</span> <span id="practice-count"></span></a>
+                <a href="game.html?practice=true" class="btn btn-practice" id="practice-btn" aria-describedby="practice-hint"><span data-i18n="menu.practice">Cwicz</span> <span id="practice-count"></span></a>
+                <p class="practice-hint" id="practice-hint" hidden></p>
                 <a href="shop.html" class="btn btn-secondary" data-i18n="menu.shop">Sklep</a>
-                <button class="btn btn-help" id="formulas-btn" data-i18n="menu.formulas">Wzory</button>
+                <button type="button" class="btn btn-help" id="formulas-btn" aria-haspopup="dialog" data-i18n="menu.formulas">Wzory</button>
             </div>
 
             <!-- Wyzwanie dnia -->
             <div class="daily-section" id="daily-section">
-                <h3 class="daily-title" data-i18n="daily.title">Wyzwanie dnia</h3>
+                <h2 class="daily-title" data-i18n="daily.title">Wyzwanie dnia</h2>
                 <p class="daily-status" id="daily-status"></p>
                 <a href="game.html?daily=true" class="btn btn-daily" id="daily-btn">Zagraj</a>
-                <p class="daily-countdown" id="daily-countdown"></p>
+                <p class="daily-countdown" id="daily-countdown" aria-live="polite"></p>
             </div>
 
             <!-- Tablica wynikow - podglad -->
             <div class="leaderboard-section">
-                <h3 class="leaderboard-title" data-i18n="lb.title">Najlepsze wyniki</h3>
+                <h2 class="leaderboard-title" data-i18n="lb.title">Najlepsze wyniki</h2>
                 <div id="leaderboard-preview"></div>
             </div>
 
@@ -67,23 +76,23 @@
 
             <!-- Przyciski dzwieku -->
             <div class="sound-toggles">
-                <button class="sound-toggle" id="sfx-toggle">SFX: ON</button>
-                <button class="sound-toggle" id="music-toggle">Muzyka: OFF</button>
+                <button type="button" class="sound-toggle" id="sfx-toggle" aria-pressed="true">SFX: ON</button>
+                <button type="button" class="sound-toggle" id="music-toggle" aria-pressed="false">Muzyka: OFF</button>
             </div>
 
             <div class="code-input-container" style="margin-top: 20px;">
-                <input type="text" id="code-input" placeholder="Wpisz kod..." data-i18n-placeholder="code.placeholder" style="padding: 10px; border-radius: 8px; border: 2px solid var(--primary-color); background: rgba(255,255,255,0.1); color: var(--text-color); font-size: 1rem; width: 150px; text-align: center;">
-                <button id="code-btn" class="btn" data-i18n="code.use" style="padding: 10px 20px; margin-left: 10px;">Uzyj kodu</button>
-                <p id="code-message" style="margin-top: 10px; font-size: 0.9rem;"></p>
+                <input type="text" id="code-input" aria-label="Kod bonusowy" data-i18n-aria-label="code.label" autocomplete="off" placeholder="Wpisz kod..." data-i18n-placeholder="code.placeholder" style="padding: 10px; border-radius: 8px; border: 2px solid var(--primary-color); background: rgba(255,255,255,0.1); color: var(--text-color); font-size: 1rem; width: 150px; text-align: center;">
+                <button type="button" id="code-btn" class="btn" data-i18n="code.use" style="padding: 10px 20px; margin-left: 10px;">Uzyj kodu</button>
+                <p id="code-message" role="status" aria-live="polite" style="margin-top: 10px; font-size: 0.9rem;"></p>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Modal z wzorami -->
     <div class="formulas-modal" id="formulas-modal">
-        <div class="formulas-content">
-            <button class="formulas-close" id="formulas-close">&times;</button>
-            <h2 class="formulas-title">Wzory i oznaczenia</h2>
+        <div class="formulas-content" role="dialog" aria-modal="true" aria-labelledby="formulas-title">
+            <button type="button" class="formulas-close" id="formulas-close" aria-label="Zamknij" data-i18n-aria-label="common.close">&times;</button>
+            <h2 class="formulas-title" id="formulas-title">Wzory i oznaczenia</h2>
 
             <div class="formulas-section">
                 <h3>Oznaczenia liter</h3>
@@ -157,14 +166,14 @@
     </div>
 
     <!-- Toggle konfiguracji -->
-    <button class="setup-toggle" id="setup-toggle" title="Konfiguracja pytan AI" data-i18n-title="setup.toggleTitle">&#9881;</button>
+    <button type="button" class="setup-toggle" id="setup-toggle" aria-haspopup="dialog" title="Konfiguracja pytan AI" data-i18n-title="setup.toggleTitle" aria-label="Konfiguracja pytan AI" data-i18n-aria-label="setup.toggleTitle">&#9881;</button>
 
     <!-- Panel konfiguracji AI -->
     <div class="setup-panel" id="setup-panel">
-      <div class="setup-panel-inner">
+      <div class="setup-panel-inner" role="dialog" aria-modal="true" aria-labelledby="setup-title">
         <div class="setup-panel-header">
-            <h3 data-i18n="setup.title">Dodaj nowa klase</h3>
-            <button class="setup-panel-close" id="setup-panel-close">&times;</button>
+            <h2 id="setup-title" data-i18n="setup.title">Dodaj nowa klase</h2>
+            <button type="button" class="setup-panel-close" id="setup-panel-close" aria-label="Zamknij" data-i18n-aria-label="common.close">&times;</button>
         </div>
         <div class="setup-panel-body">
             <div class="setup-field">
@@ -176,9 +185,9 @@
                 <textarea id="class-context-input" placeholder="np. Rozdzial 3: Uklad krwionosny, serce, krew..." data-i18n-placeholder="setup.contextPh" rows="3"></textarea>
             </div>
             <div class="setup-field">
-                <label data-i18n="setup.imageLabel">Zdjecie kryteriow sukcesu (opcjonalnie)</label>
-                <div class="upload-area" id="upload-area">
-                    <div class="upload-icon">&#128247;</div>
+                <label for="image-upload" id="image-label" data-i18n="setup.imageLabel">Zdjecie kryteriow sukcesu (opcjonalnie)</label>
+                <div class="upload-area" id="upload-area" role="button" tabindex="0" aria-labelledby="image-label">
+                    <div class="upload-icon" aria-hidden="true">&#128247;</div>
                     <div class="upload-text" data-i18n="upload.text">Kliknij lub przeciagnij zdjecie</div>
                     <div class="upload-hint" data-i18n="upload.hint">Max 4MB - JPG, PNG</div>
                 </div>
@@ -186,13 +195,13 @@
             </div>
             <p class="auth-notice" id="auth-notice" data-i18n="setup.authNotice">Zaloguj sie kontem Google, aby generowac pytania.</p>
             <button class="btn-generate" id="generate-btn" data-i18n="setup.generate">Generuj pytania</button>
-            <div class="generate-status" id="generate-status"></div>
+            <div class="generate-status" id="generate-status" role="status" aria-live="polite"></div>
         </div>
       </div>
     </div>
 
     <!-- Loading overlay -->
-    <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite">
         <div class="loading-spinner"></div>
         <div class="loading-text" data-i18n="loading.text">Generowanie pytan...</div>
         <div class="loading-subtext" data-i18n="loading.subtext">To moze potrwac do 30 sekund</div>

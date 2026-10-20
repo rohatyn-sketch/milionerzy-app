@@ -240,6 +240,14 @@ function showExplanation(correct: boolean, explanation: string, customTitle: str
   }
 
   els.explanationOverlay?.classList.add('active');
+  // Move focus into the result dialog so keyboard and screen-reader users land
+  // on the outcome and the "next" action (APG dialog pattern).
+  // preventScroll: on phones the result and explanation must stay in view
+  // (focusing the button would scroll the overlay down to it).
+  requestAnimationFrame(() => {
+    if (els.explanationOverlay) els.explanationOverlay.scrollTop = 0;
+    els.nextBtn?.focus({ preventScroll: true });
+  });
 
   // In practice mode, show learn-more popup if user got this question wrong 2+ times
   if (isPracticeMode && !correct && wrongCount >= 2 && !podcast) {
@@ -443,6 +451,12 @@ function endGame(): void {
 
   checkAllAchievements();
   els.endScreen?.classList.add('active');
+  // Focus the first end-screen action (unless the tutorial's closing card is
+  // about to take focus).
+  requestAnimationFrame(() => {
+    if (document.querySelector('.tour-overlay')) return;
+    els.endScreen?.querySelector<HTMLElement>('.end-buttons a, .end-buttons button')?.focus({ preventScroll: true });
+  });
   scheduleSave();
 
   // Completing a normal game is the end of the first-time guide.

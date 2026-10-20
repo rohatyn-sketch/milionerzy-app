@@ -1,6 +1,12 @@
 import { test, expect, Page } from '@playwright/test';
 
-const BASE = 'https://edufiszka.app';
+// Runs against the live site after every deploy. SMOKE_BASE points the same
+// user flows at another server (e.g. a local `vite preview`) to prove a change
+// will pass before it ships; the hosting-only checks (old-host redirect,
+// Cache-Control, auth domain) only make sense live and are skipped then.
+const BASE = process.env.SMOKE_BASE ?? 'https://edufiszka.app';
+const LIVE = !process.env.SMOKE_BASE;
+const BASE_RE = BASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const navs: string[] = [];
 const dialogs: string[] = [];
 
@@ -19,7 +25,7 @@ async function finishGame(page: Page) {
 
 async function expectOnNewDomain(page: Page, path: RegExp) {
   await page.waitForLoadState('load');
-  expect(page.url()).toMatch(new RegExp('^https://edufiszka\\.app' + path.source));
+  expect(page.url()).toMatch(new RegExp('^' + BASE_RE + path.source));
 }
 
 test.beforeEach(async ({ page }) => {
@@ -76,6 +82,7 @@ test('shop and achievements stay on new domain and link back', async ({ page }) 
 });
 
 test('old Firebase hosts redirect to edufiszka.app', async ({ page }) => {
+  test.skip(!LIVE, 'hosting check: live site only');
   for (const p of ['/', '/game.html', '/shop.html', '/achievements.html']) {
     await page.goto('https://milionerzy.web.app' + p);
     await page.waitForURL(/^https:\/\/edufiszka\.app/);
@@ -83,6 +90,7 @@ test('old Firebase hosts redirect to edufiszka.app', async ({ page }) => {
 });
 
 test('HTML is served no-cache', async ({ request }) => {
+  test.skip(!LIVE, 'hosting check: live site only');
   for (const p of ['/', '/index.html', '/game.html', '/shop.html', '/achievements.html']) {
     const r = await request.get(BASE + p);
     expect(r.headers()['cache-control'], p).toBe('no-cache');
@@ -90,6 +98,7 @@ test('HTML is served no-cache', async ({ request }) => {
 });
 
 test('sign-in uses edufiszka.app as auth domain', async ({ request }) => {
+  test.skip(!LIVE, 'hosting check: live site only');
   const html = await (await request.get(BASE + '/')).text();
   const scripts = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+\.js)"/g)].map(m => m[1]);
   const bundles = await Promise.all(scripts.map(async s => (await request.get(BASE + s)).text()));

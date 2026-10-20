@@ -17,11 +17,16 @@
     <div class="spotlight"></div>
     <div class="stars"></div>
 
-    <nav class="nav-back">
-        <a href="#" id="back-to-menu" data-i18n="nav.back">&#8592; Powrot do menu</a>
-    </nav>
+    <!-- Top bar: back link + language switcher in one row (the back link used
+         to be fixed and overlapped the game header on phones). -->
+    <header class="top-bar">
+        <div class="top-bar-inner">
+            <a href="index.html" id="back-to-menu" class="top-bar-back" data-i18n="nav.back">&#8592; Powrot do menu</a>
+            <div class="top-bar-actions" id="app-bar-actions"></div>
+        </div>
+    </header>
 
-    <div class="container">
+    <main class="container game-main" id="main">
         <div class="game-container">
             <!-- Header z timerem i pieniedzmi -->
             <div class="game-header">
@@ -29,7 +34,7 @@
                     <div class="timer-bar">
                         <div class="timer-fill" id="timer-fill"></div>
                     </div>
-                    <span class="timer-text" id="timer-text">60s</span>
+                    <span class="timer-text" id="timer-text" role="timer" aria-atomic="true">60s</span>
                 </div>
 
                 <!-- Wskaznik trudnosci -->
@@ -44,31 +49,31 @@
             <!-- Pytanie -->
             <div class="question-container fade-in">
                 <p class="question-number" id="question-number">Pytanie 1/10</p>
-                <p class="question-text" id="question-text" data-i18n="game.loading">Ladowanie pytania...</p>
+                <h1 class="question-text" id="question-text" aria-live="polite" data-i18n="game.loading">Ladowanie pytania...</h1>
             </div>
 
             <!-- Odpowiedzi -->
-            <div class="answers-container" id="answers-container">
+            <div class="answers-container" id="answers-container" role="group" aria-labelledby="question-text">
                 <button class="answer-btn" data-index="0">
-                    <span class="answer-letter">A:</span>
+                    <span class="answer-letter" aria-hidden="true">A:</span>
                     <span class="answer-text"></span>
                 </button>
                 <button class="answer-btn" data-index="1">
-                    <span class="answer-letter">B:</span>
+                    <span class="answer-letter" aria-hidden="true">B:</span>
                     <span class="answer-text"></span>
                 </button>
                 <button class="answer-btn" data-index="2">
-                    <span class="answer-letter">C:</span>
+                    <span class="answer-letter" aria-hidden="true">C:</span>
                     <span class="answer-text"></span>
                 </button>
                 <button class="answer-btn" data-index="3">
-                    <span class="answer-letter">D:</span>
+                    <span class="answer-letter" aria-hidden="true">D:</span>
                     <span class="answer-text"></span>
                 </button>
             </div>
 
             <!-- Kola ratunkowe -->
-            <div class="lifelines-container">
+            <div class="lifelines-container" role="group" aria-label="Kola ratunkowe" data-i18n-aria-label="shop.lifelines">
                 <button class="lifeline-btn" id="lifeline-fifty" title="Usuwa 2 bledne odpowiedzi" data-i18n-title="ll.fiftyTitle">
                     <span>50:50</span>
                     <span class="count" id="fifty-count">x0</span>
@@ -90,11 +95,11 @@
                 <span class="hint" data-i18n="kb.exit">Esc - wyjscie</span>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Overlay z wyjasnieniem -->
     <div class="explanation-overlay" id="explanation-overlay">
-        <div class="explanation-box">
+        <div class="explanation-box" role="dialog" aria-modal="true" aria-labelledby="explanation-result">
             <p class="explanation-result" id="explanation-result">Poprawna odpowiedz!</p>
             <p class="explanation-money" id="explanation-money">+200 000 PLN</p>
 
@@ -104,18 +109,18 @@
             </div>
 
             <div class="explanation-content" id="explanation-text">
-                <h3 class="explanation-title" data-i18n="exp.title">Wyjasnienie:</h3>
+                <h2 class="explanation-title" data-i18n="exp.title">Wyjasnienie:</h2>
                 <div class="explanation-body"></div>
             </div>
 
-            <button class="btn btn-primary" id="next-btn">Nastepne pytanie</button>
+            <button type="button" class="btn btn-primary" id="next-btn">Nastepne pytanie</button>
         </div>
     </div>
 
     <!-- Ekran koncowy -->
     <div class="end-screen" id="end-screen">
-        <div class="end-content">
-            <h1 class="end-title" id="end-title">Koniec gry!</h1>
+        <div class="end-content" role="dialog" aria-modal="true" aria-labelledby="end-title">
+            <h2 class="end-title" id="end-title">Koniec gry!</h2>
             <p class="end-money" id="end-money">Zdobyles: 0 PLN</p>
             <div class="end-buttons">
                 <a href="game.html" class="btn btn-primary" data-i18n="end.playAgain">Zagraj ponownie</a>

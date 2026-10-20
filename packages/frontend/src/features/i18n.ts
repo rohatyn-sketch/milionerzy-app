@@ -58,6 +58,7 @@ export function t(key: string, pl: string, params?: Record<string, string | numb
  *   data-i18n-html      -> innerHTML
  *   data-i18n-placeholder -> placeholder attribute
  *   data-i18n-title     -> title attribute
+ *   data-i18n-aria-label -> aria-label attribute
  */
 export function applyI18n(root: ParentNode = document): void {
   document.documentElement.lang = getLang();
@@ -79,6 +80,10 @@ export function applyI18n(root: ParentNode = document): void {
     const v = EN[el.dataset.i18nTitle!];
     if (v !== undefined) el.setAttribute('title', v);
   });
+  root.querySelectorAll<HTMLElement>('[data-i18n-aria-label]').forEach((el) => {
+    const v = EN[el.dataset.i18nAriaLabel!];
+    if (v !== undefined) el.setAttribute('aria-label', v);
+  });
 }
 
 /** Call once per page, early, to apply the chosen language to static markup. */
@@ -87,8 +92,11 @@ export function initI18n(): void {
   mountLangSwitcher();
 }
 
-// Fixed language switcher, pinned to the top-right on every page. It shows the
-// current language; clicking it flips PL<->EN and reloads (see toggleLang).
+// Language switcher. It shows the current language; clicking it flips PL<->EN
+// and reloads (see toggleLang). It lives in the page's top bar
+// (#app-bar-actions) so it sits in one row with the other header controls
+// instead of overlapping them; pages without a top bar get a fixed corner
+// button.
 function mountLangSwitcher(): void {
   if (document.getElementById('lang-switcher')) return;
   const btn = document.createElement('button');
@@ -100,7 +108,13 @@ function mountLangSwitcher(): void {
   btn.title = label;
   btn.setAttribute('aria-label', label);
   btn.addEventListener('click', () => toggleLang());
-  document.body.appendChild(btn);
+  const slot = document.getElementById('app-bar-actions');
+  if (slot) {
+    btn.classList.add('lang-switcher--inline');
+    slot.insertBefore(btn, slot.firstChild);
+  } else {
+    document.body.appendChild(btn);
+  }
 }
 
 // --- English dictionary ----------------------------------------------------
@@ -109,6 +123,8 @@ const EN: Record<string, string> = {
   // Shared / navigation
   'nav.back': '← Back to menu',
   'money.label': 'Your money:',
+  'a11y.skip': 'Skip to content',
+  'common.close': 'Close',
 
   // Main menu
   'menu.subtitle': 'Pick a class and play!',
@@ -125,6 +141,7 @@ const EN: Record<string, string> = {
   'lb.defaultName': 'Player',
   'code.placeholder': 'Enter a code...',
   'code.use': 'Use code',
+  'code.label': 'Bonus code',
   'code.ok': 'Correct code! You receive 1,000,000 PLN!',
   'code.bad': 'Invalid code!',
 
@@ -182,6 +199,7 @@ const EN: Record<string, string> = {
   'auth.hint': 'Sign in to save your progress and create new classes',
   'auth.loginError': 'Sign-in error: ',
   'practice.loginReq': 'Sign in to use practice mode',
+  'practice.empty': 'Questions you answer wrong will show up here for review.',
   'practice.loginAlert': 'Sign in to use practice mode.',
   'practice.noneAlert': "You don't have any incorrect questions to practice!",
 
@@ -251,6 +269,8 @@ const EN: Record<string, string> = {
   'ach.title': 'Achievements',
   'ach.subtitle': 'Unlock them all to become a true master!',
   'ach.unlocked': 'Unlocked:',
+  'ach.statusUnlocked': 'Unlocked',
+  'ach.statusLocked': 'Locked',
   'ach.unlockedNotif': 'Achievement unlocked!',
 
   // Achievement names + descriptions (keyed by id)
@@ -382,4 +402,5 @@ const EN: Record<string, string> = {
   'audio.showTranscript': 'Show transcript',
   'audio.hideTranscript': 'Hide transcript',
   'audio.back': 'Back to practice',
+  'audio.position': 'Playback position',
 };

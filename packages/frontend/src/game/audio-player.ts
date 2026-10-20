@@ -1,4 +1,5 @@
 import { t } from '../features/i18n';
+import { openDialog, setupDialog, closeDialog } from '../ui/dialog';
 
 let playerEl: HTMLElement | null = null;
 let audioEl: HTMLAudioElement | null = null;
@@ -12,20 +13,20 @@ function formatTime(seconds: number): string {
 function createPlayerHTML(title: string): string {
   return `
     <div class="audio-player-overlay" id="audio-player-overlay">
-      <div class="audio-player-box">
+      <div class="audio-player-box" role="dialog" aria-modal="true" aria-labelledby="audio-player-title">
         <div class="audio-player-header">
-          <span class="audio-player-icon">🎧</span>
-          <h3 class="audio-player-title">${title}</h3>
+          <span class="audio-player-icon" aria-hidden="true">🎧</span>
+          <h2 class="audio-player-title" id="audio-player-title">${title}</h2>
         </div>
         <div class="audio-player-controls">
-          <button class="audio-player-btn" id="audio-play-btn" title="${t('audio.playPause', 'Odtwarzaj/Pauza')}">▶</button>
+          <button type="button" class="audio-player-btn" id="audio-play-btn" title="${t('audio.playPause', 'Odtwarzaj/Pauza')}" aria-label="${t('audio.playPause', 'Odtwarzaj/Pauza')}">▶</button>
           <div class="audio-player-progress-wrap">
-            <input type="range" class="audio-player-progress" id="audio-progress" min="0" max="100" value="0" step="0.1">
+            <input type="range" class="audio-player-progress" id="audio-progress" aria-label="${t('audio.position', 'Pozycja odtwarzania')}" min="0" max="100" value="0" step="0.1">
             <div class="audio-player-time">
               <span id="audio-current-time">0:00</span> / <span id="audio-duration">0:00</span>
             </div>
           </div>
-          <select class="audio-player-speed" id="audio-speed" title="${t('audio.speed', 'Predkosc odtwarzania')}">
+          <select class="audio-player-speed" id="audio-speed" title="${t('audio.speed', 'Predkosc odtwarzania')}" aria-label="${t('audio.speed', 'Predkosc odtwarzania')}">
             <option value="0.75">0.75x</option>
             <option value="1" selected>1x</option>
             <option value="1.25">1.25x</option>
@@ -115,13 +116,10 @@ export function showAudioPlayer(audioUrl: string, title: string, transcript?: st
     transcriptBtn.style.display = 'none';
   }
 
-  // Close
-  closeBtn.addEventListener('click', () => hideAudioPlayer());
-
-  // Animate in
-  requestAnimationFrame(() => {
-    playerEl?.classList.add('active');
-  });
+  // Close button, Esc, focus trap and focus return: ui/dialog.ts.
+  const overlay = playerEl!;
+  setupDialog(overlay, closeBtn, document.createElement('div'));
+  openDialog(overlay, { initialFocus: playBtn, onClose: () => hideAudioPlayer() });
 
   // Auto-play
   audioEl.play().then(() => {
@@ -138,10 +136,10 @@ export function hideAudioPlayer(): void {
     audioEl = null;
   }
   if (playerEl) {
-    playerEl.classList.remove('active');
-    setTimeout(() => {
-      playerEl?.remove();
-      playerEl = null;
-    }, 300);
+    const el = playerEl;
+    closeDialog(el);
+    el.classList.remove('active');
+    playerEl = null;
+    setTimeout(() => el.remove(), 300);
   }
 }
