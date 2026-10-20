@@ -10,6 +10,8 @@ import type {
 } from '@milionerzy/shared';
 import { formatMoney as sharedFormatMoney } from '@milionerzy/shared';
 
+const DEFAULT_QUESTION_COUNT = 10;
+
 const KEYS = {
   MONEY: 'milionerzy_money',
   TOTAL_EARNED: 'milionerzy_total_earned',
@@ -230,7 +232,9 @@ export const storage = {
   setLang(lang: Lang) { localStorage.setItem(KEYS.LANG, lang); },
 
   // Preferred number of questions per game (null = play the whole set).
-  getQuestionCount(): number | null { return getInt(KEYS.QUESTION_COUNT); },
+  // Until the player picks a number, games are a quick 10 questions (the full
+  // set made a first game far too long).
+  getQuestionCount(): number { return getInt(KEYS.QUESTION_COUNT) ?? DEFAULT_QUESTION_COUNT; },
   setQuestionCount(n: number) { localStorage.setItem(KEYS.QUESTION_COUNT, Math.max(1, Math.round(n)).toString()); },
 
   // Onboarding

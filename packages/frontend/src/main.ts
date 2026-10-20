@@ -94,10 +94,8 @@ function updateQuestionCountSlider(): void {
   slider.min = String(min);
   slider.max = String(max);
 
-  // Default to the full set (preserves the original "play everything" behaviour)
-  // until the player picks a number; always clamp into the current range.
-  const stored = storage.getQuestionCount();
-  const value = Math.min(max, Math.max(min, stored ?? max));
+  // Stored choice (or the default); always clamp into the current range.
+  const value = Math.min(max, Math.max(min, storage.getQuestionCount()));
   slider.value = String(value);
   updateQuestionCountValue();
 }

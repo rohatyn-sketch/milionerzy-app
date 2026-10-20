@@ -625,8 +625,8 @@ function startGame(): void {
       return;
     }
   } else {
-    // Play the number of questions the player picked on the menu (random pick),
-    // or the whole set when they haven't chosen one.
+    // Play the number of questions picked on the menu (random pick), or the
+    // whole set when that is no larger than what's available.
     const allQ = getQuestions();
     const want = storage.getQuestionCount();
     if (want && want < allQ.length) {

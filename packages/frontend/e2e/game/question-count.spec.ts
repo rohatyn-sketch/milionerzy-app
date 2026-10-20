@@ -1,7 +1,7 @@
 import { expect, test } from '../fixtures';
 
 test.describe('Question count in game', () => {
-  test('game loads with fallback questions and shows total in header', async ({ page }) => {
+  test('game defaults to 10 questions and shows total in header', async ({ page }) => {
     await page.goto('/game.html');
 
     await test.step('question number shows total count', async () => {
@@ -14,8 +14,8 @@ test.describe('Question count in game', () => {
       expect(match).not.toBeNull();
 
       const total = parseInt(match![2], 10);
-      // Fallback questions should have at least 50
-      expect(total).toBeGreaterThanOrEqual(50);
+      // No count chosen yet: a quick 10-question game
+      expect(total).toBe(10);
     });
   });
 

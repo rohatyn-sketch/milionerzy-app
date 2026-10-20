@@ -35,3 +35,11 @@ test.describe('Question count slider', () => {
     await expect(page.locator('#question-number')).toContainText('/7');
   });
 });
+
+test('a first-time player defaults to a 10-question game', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#question-count-value')).toHaveText('10');
+  await page.locator('#play-controls a.btn-primary', { hasText: 'Graj' }).click();
+  await page.waitForURL('**/game.html');
+  await expect(page.locator('#question-number')).toContainText('/10');
+});
