@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }) => {
   page.on('framenavigated', f => { if (f === page.mainFrame()) navs.push(f.url()); });
   page.on('dialog', d => { dialogs.push(`${d.type()} on ${page.url()}`); d.accept(); });
   await page.goto(BASE + '/');
-  await page.getByRole('button', { name: 'Pomin samouczek' }).click({ timeout: 5000 }).catch(() => {});
+  await page.getByRole('button', { name: /Pomi[nń] samouczek/ }).click({ timeout: 5000 }).catch(() => {});
   await page.locator('input[type=range]').evaluate((el: HTMLInputElement) => {
     el.value = el.min; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
   });
