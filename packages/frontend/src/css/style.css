@@ -1176,6 +1176,22 @@ body.tour-open { padding-bottom: 60vh; }
     50% { outline-color: transparent; }
 }
 
+/* After the menu tour: Play gently pulses until the first game starts.
+   (The hexagon clip-path would cut off a glow, and changing its size would
+   make it a moving target, so it only brightens.) */
+.play-hint {
+    animation: play-hint 1.4s ease-in-out infinite;
+}
+
+@keyframes play-hint {
+    0%, 100% { filter: brightness(1) saturate(1); }
+    50% { filter: brightness(1.45) saturate(1.3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .play-hint { filter: brightness(1.3); }
+}
+
 .tour-tooltip {
     position: fixed;
     max-width: 360px;
