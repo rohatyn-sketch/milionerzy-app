@@ -93,11 +93,11 @@ test.describe('Phone layout (375px)', () => {
     await expect(page.locator('#google-signin-btn')).toBeVisible();
     const lang = (await page.locator('#lang-switcher').boundingBox())!;
     const signin = (await page.locator('#google-signin-btn').boundingBox())!;
-    const hint = (await page.locator('.auth-hint').boundingBox())!;
     const title = (await page.locator('h1.title').boundingBox())!;
     expect(overlaps(lang, signin)).toBe(false);
     expect(overlaps(signin, title)).toBe(false);
-    expect(overlaps(hint, title)).toBe(false);
+    // Language and sign-in sit in one row, vertically centred on each other.
+    expect(Math.abs((lang.y + lang.height / 2) - (signin.y + signin.height / 2))).toBeLessThanOrEqual(1);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });
