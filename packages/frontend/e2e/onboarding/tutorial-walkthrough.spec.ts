@@ -1,5 +1,5 @@
 // Walks the ENTIRE first-time tutorial, step by step, the way a new player
-// would: the menu tour, the in-game tour, a complete first game and the
+// would: the menu tour, pressing Play themselves, the in-game tour, a complete first game and the
 // closing "tutorial complete" card. At every step it checks that:
 //   - the step title is the expected text in the chosen language,
 //   - the highlighted element exists, is visible and is fully inside the
@@ -36,7 +36,7 @@ const MENU_STEPS: Step[] = [
   },
   {
     target: '#wallet-chip',
-    title: { pl: 'Twoje pieniadze', en: 'Your money' },
+    title: { pl: 'Twoje pieniądze', en: 'Your money' },
     targetText: { pl: /PLN/, en: /PLN/ },
   },
   {
@@ -44,7 +44,11 @@ const MENU_STEPS: Step[] = [
     title: { pl: 'Menu', en: 'Menu' },
     targetText: { pl: /Start[\s\S]*Postepy[\s\S]*Sklep/, en: /Home[\s\S]*Progress[\s\S]*Shop/ },
   },
-  { target: null, title: { pl: 'Zagrajmy!', en: "Let's play!" } },
+  {
+    target: '#play-controls a.btn-primary',
+    title: { pl: 'Gotowe — możesz zaczynać!', en: "You're all set!" },
+    targetText: { pl: /Graj/, en: /Play/ },
+  },
 ];
 
 const GAME_STEPS: Step[] = [
@@ -53,7 +57,7 @@ const GAME_STEPS: Step[] = [
   { target: '.timer-container', title: { pl: 'Czas', en: 'Time' }, targetText: { pl: /\d+s/, en: /\d+s/ } },
   {
     target: '.lifelines-container',
-    title: { pl: 'Kola ratunkowe', en: 'Lifelines' },
+    title: { pl: 'Koła ratunkowe', en: 'Lifelines' },
     targetText: { pl: /50:50/, en: /50:50/ },
   },
   {
@@ -64,8 +68,8 @@ const GAME_STEPS: Step[] = [
   { target: null, title: { pl: 'Powodzenia!', en: 'Good luck!' } },
 ];
 
-const DONE_TITLE: Record<Lang, string> = { pl: 'Samouczek ukonczony!', en: 'Tutorial complete!' };
-const SKIP_LABEL: Record<Lang, string> = { pl: 'Pomin samouczek', en: 'Skip tutorial' };
+const DONE_TITLE: Record<Lang, string> = { pl: 'Samouczek ukończony!', en: 'Tutorial complete!' };
+const SKIP_LABEL: Record<Lang, string> = { pl: 'Pomiń samouczek', en: 'Skip tutorial' };
 
 type Box = { x: number; y: number; width: number; height: number };
 
@@ -203,8 +207,21 @@ for (const vp of VIEWPORTS) {
 
       await test.step('menu tour', async () => {
         await walk(page, MENU_STEPS, lang);
-        await expect(page.locator('.tour-next')).toHaveText(lang === 'pl' ? 'Graj teraz' : 'Play now');
-        await Promise.all([page.waitForURL('**/game.html'), page.locator('.tour-next').click()]);
+        await expect(page.locator('.tour-next')).toHaveText(lang === 'pl' ? 'Rozumiem' : 'Got it');
+        await page.locator('.tour-next').click();
+      });
+
+      await test.step('tour closes on the menu; Play is highlighted and the player starts the game', async () => {
+        await expect(page.locator('.tour-overlay')).toHaveCount(0);
+        await expect(page).not.toHaveURL(/game\.html/);
+        const play = page.locator('#play-controls a.btn-primary');
+        await expect(play).toHaveClass(/play-hint/);
+        await expect(play).toBeFocused();
+        // Reloading before playing doesn't replay the menu tour, Play stays highlighted.
+        await page.reload();
+        await expect(page.locator('#play-controls a.btn-primary')).toHaveClass(/play-hint/);
+        await expect(page.locator('.tour-overlay')).toHaveCount(0);
+        await Promise.all([page.waitForURL('**/game.html'), page.locator('#play-controls a.btn-primary').click()]);
       });
 
       await test.step('in-game tour', async () => {

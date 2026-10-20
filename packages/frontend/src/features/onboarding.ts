@@ -17,7 +17,7 @@ interface TourStep {
   title: string;
   text: string;
   // Label for the primary button on this step. Defaults to "Dalej", or
-  // "Zakoncz" on the last step.
+  // "Zakończ" on the last step.
   nextLabel?: string;
 }
 
@@ -25,12 +25,14 @@ interface TourOptions {
   onStart?: () => void;
   onComplete?: () => void;
   onSkip?: () => void;
-  // Whether to show the "Pomin samouczek" (skip) control. The final
+  // Whether to show the "Pomiń samouczek" (skip) control. The final
   // celebration screen hides it.
   allowSkip?: boolean;
 }
 
 let activeTour: Tour | null = null;
+
+const PLAY_BUTTON = '#play-controls a.btn-primary';
 
 // True when the element sits in a fixed or sticky bar (the app bar, the phone
 // tab bar): scrolling the page doesn't move it, so we don't scroll for it.
@@ -106,10 +108,10 @@ class Tour {
       <h3 class="tour-title"></h3>
       <p class="tour-text"></p>
       <div class="tour-footer">
-        <button type="button" class="tour-skip">${t('onb.skip', 'Pomin samouczek')}</button>
+        <button type="button" class="tour-skip">${t('onb.skip', 'Pomiń samouczek')}</button>
         <div class="tour-nav">
           <span class="tour-counter"></span>
-          <button type="button" class="tour-next">Dalej</button>
+          <button type="button" class="tour-next">${t('onb.next', 'Dalej')}</button>
         </div>
       </div>
     `;
@@ -150,7 +152,7 @@ class Tour {
     this.textEl.textContent = step.text;
     this.counterEl.textContent = `${i + 1} / ${this.steps.length}`;
     const isLast = i === this.steps.length - 1;
-    this.nextBtn.textContent = step.nextLabel || (isLast ? t('onb.finish', 'Zakoncz') : t('onb.next', 'Dalej'));
+    this.nextBtn.textContent = step.nextLabel || (isLast ? t('onb.finish', 'Zakończ') : t('onb.next', 'Dalej'));
 
     Array.from(this.dotsEl.children).forEach((dot, di) => {
       dot.classList.toggle('active', di === i);
@@ -291,32 +293,35 @@ function menuSteps(): TourStep[] {
   return [
     {
       title: t('onb.welcome.title', 'Witaj w EduFiszka!'),
-      text: t('onb.welcome.text', 'To gra, w ktorej odpowiadasz na pytania i zdobywasz pieniadze. Pokazemy Ci w kilku krokach, jak grac.'),
+      text: t('onb.welcome.text', 'Przygotuj się do sprawdzianu szybciej i skuteczniej. Wgraj zdjęcie kryteriów sukcesu, a EduFiszka zamieni je w pytania quizowe. Za dobre odpowiedzi zdobywasz wirtualne pieniądze. W kilku krokach pokażemy Ci, jak zacząć.'),
     },
     {
       target: '#class-selector',
       title: t('onb.class.title', 'Wybierz przedmiot'),
-      text: t('onb.class2.text', 'Krok 1: wybierz przedmiot, z ktorego chcesz grac. Przyciskiem "Dodaj klase" stworzysz wlasny zestaw pytan z AI (po zalogowaniu).'),
+      text: t('onb.class3.text', 'Krok 1: wybierz przedmiot. Uczysz się do konkretnego sprawdzianu? Kliknij „Dodaj klasę” i wgraj zdjęcie kryteriów sukcesu — AI przygotuje z nich pytania (wymaga zalogowania).'),
     },
     {
       target: '#play-controls',
       title: t('onb.play.title', 'Zagraj'),
-      text: t('onb.play2.text', 'Krok 2: suwakiem ustaw liczbe pytan i nacisnij "Graj". Mniej pytan to szybsza gra.'),
+      text: t('onb.play3.text', 'Krok 2: suwakiem wybierz liczbę pytań. Mniej pytań to krótsza gra.'),
     },
     {
       target: '#wallet-chip',
-      title: t('onb.money.title', 'Twoje pieniadze'),
-      text: t('onb.money2.text', 'Za poprawne odpowiedzi zdobywasz pieniadze. Stan konta widzisz zawsze tutaj, a wydasz je w Sklepie na kola ratunkowe i motywy.'),
+      title: t('onb.money.title', 'Twoje pieniądze'),
+      text: t('onb.money2.text', 'Za poprawne odpowiedzi zdobywasz pieniądze. Stan konta zawsze widzisz tutaj, a wydasz je w Sklepie na koła ratunkowe i motywy.'),
     },
     {
       target: '.app-nav',
       title: t('onb.nav.title', 'Menu'),
-      text: t('onb.nav.text', 'Start to ten ekran. W Postepach zobaczysz osiagniecia i najlepsze wyniki, a w Sklepie wydasz zarobione pieniadze.'),
+      text: t('onb.nav.text', 'Start to ten ekran. W Postępach zobaczysz osiągnięcia i najlepsze wyniki, a w Sklepie wydasz zarobione pieniądze.'),
     },
     {
-      title: t('onb.final.title', 'Zagrajmy!'),
-      text: t('onb.final.text', 'To wszystko, co musisz wiedziec na start. Kliknij ponizej, aby rozpoczac swoja pierwsza gre — dokonczymy samouczek w trakcie.'),
-      nextLabel: t('onb.final.cta', 'Graj teraz'),
+      // Points at the real Play button: the player starts the game themselves,
+      // rather than the tour jumping into it.
+      target: PLAY_BUTTON,
+      title: t('onb.ready.title', 'Gotowe — możesz zaczynać!'),
+      text: t('onb.ready.text', 'Gdy zechcesz, naciśnij „Graj”. Podczas pierwszej gry pokażemy Ci jeszcze, jak odpowiadać.'),
+      nextLabel: t('onb.ready.cta', 'Rozumiem'),
     },
   ];
 }
@@ -328,31 +333,31 @@ function gameSteps(): TourStep[] {
     {
       target: '.question-container',
       title: t('onb.g.question.title', 'Pytanie'),
-      text: t('onb.g.question.text', 'Tu pojawia sie pytanie. Przeczytaj je uwaznie — zaraz wybierzesz odpowiedz.'),
+      text: t('onb.g.question.text', 'Tu pojawia się pytanie. Przeczytaj je uważnie — zaraz wybierzesz odpowiedź.'),
     },
     {
       target: '#answers-container',
       title: t('onb.g.answers.title', 'Odpowiedzi'),
-      text: t('onb.g.answers.text', 'Kliknij jedna z odpowiedzi. Mozesz tez uzyc klawiszy A/B/C/D lub 1/2/3/4.'),
+      text: t('onb.g.answers.text', 'Kliknij jedną z odpowiedzi. Możesz też użyć klawiszy A/B/C/D lub 1/2/3/4.'),
     },
     {
       target: '.timer-container',
       title: t('onb.g.timer.title', 'Czas'),
-      text: t('onb.g.timer.text', 'Na kazde pytanie masz ograniczony czas. Gdy pasek sie skonczy, pytanie przepada.'),
+      text: t('onb.g.timer.text', 'Na każde pytanie masz ograniczony czas. Gdy pasek się skończy, pytanie przepada.'),
     },
     {
       target: '.lifelines-container',
-      title: t('onb.g.lifelines.title', 'Kola ratunkowe'),
-      text: t('onb.g.lifelines.text', '50:50 usuwa bledne odpowiedzi, "Pomin" przeskakuje pytanie, a "+Czas" dodaje sekundy. Kupisz je w sklepie.'),
+      title: t('onb.g.lifelines.title', 'Koła ratunkowe'),
+      text: t('onb.g.lifelines.text', '50:50 usuwa błędne odpowiedzi, „Pomiń” przeskakuje pytanie, a „+Czas” dodaje sekundy. Kupisz je w Sklepie.'),
     },
     {
       target: '.current-money, #current-money',
       title: t('onb.g.money.title', 'Zarobek'),
-      text: t('onb.g.money.text', 'Tutaj na biezaco widzisz, ile zarobiles w tej grze.'),
+      text: t('onb.g.money2.text', 'Tutaj na bieżąco widzisz swój zarobek w tej grze.'),
     },
     {
       title: t('onb.g.final.title', 'Powodzenia!'),
-      text: t('onb.g.final.text', 'Teraz Twoja kolej. Odpowiedz na wszystkie pytania — po ukonczeniu gry zakonczymy samouczek.'),
+      text: t('onb.g.final.text', 'Teraz Twoja kolej! Odpowiedz na wszystkie pytania, a po grze zakończymy samouczek.'),
       nextLabel: t('onb.g.final.cta', 'Zaczynam'),
     },
   ];
@@ -376,15 +381,27 @@ export function isFirstTimePlayer(): boolean {
   return true;
 }
 
+// Makes the Play button gently pulse until the player starts their first game.
+function hintPlayButton(): void {
+  document.querySelector<HTMLElement>(PLAY_BUTTON)?.classList.add('play-hint');
+}
+
 /** Starts the main-menu portion of the first-time guide. */
 export function startMenuOnboarding(): void {
-  if (storage.getOnboarding() === 'done') return;
+  const state = storage.getOnboarding();
+  if (state === 'done') return;
+  // Menu tour already seen, first game not played yet: just point at Play.
+  if (state === 'active') {
+    hintPlayButton();
+    return;
+  }
 
   new Tour(menuSteps(), {
     onComplete: () => {
-      // Mark the tour as in-progress and send the player into their first game.
+      // The in-game tour picks up when the player presses Play themselves.
       storage.setOnboarding('active');
-      window.location.href = 'game.html';
+      hintPlayButton();
+      document.querySelector<HTMLElement>(PLAY_BUTTON)?.focus();
     },
     onSkip: () => {
       // Respect the opt-out: don't nag on future visits.
@@ -419,8 +436,8 @@ export function finishOnboarding(): void {
   new Tour(
     [
       {
-        title: t('onb.done.title', 'Samouczek ukonczony!'),
-        text: t('onb.done.text', 'Gratulacje — ukonczyles swoja pierwsza gre! Znasz juz podstawy. Graj dalej, zdobywaj pieniadze i odblokowuj osiagniecia.'),
+        title: t('onb.done.title', 'Samouczek ukończony!'),
+        text: t('onb.done2.text', 'Gratulacje — pierwsza gra za Tobą! Znasz już podstawy. Graj dalej, zdobywaj pieniądze i odblokowuj osiągnięcia.'),
         nextLabel: t('onb.done.cta', 'Super!'),
       },
     ],
