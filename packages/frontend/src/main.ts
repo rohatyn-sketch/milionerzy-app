@@ -14,10 +14,14 @@ import { isFirstTimePlayer, startMenuOnboarding } from './features/onboarding';
 import { initI18n, t } from './features/i18n';
 import { renderPracticeButton } from './ui/practice-button';
 import { setupDialog, openDialog } from './ui/dialog';
+import { mountAppShell } from './ui/app-shell';
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   storage.init();
+  // The shell must exist before i18n (language switch slot) and auth
+  // (#auth-area lives in the app bar).
+  mountAppShell('home');
   initI18n();
   initAuth();
   initSound();
@@ -90,10 +94,8 @@ function updateQuestionCountSlider(): void {
   slider.min = String(min);
   slider.max = String(max);
 
-  // Default to the full set (preserves the original "play everything" behaviour)
-  // until the player picks a number; always clamp into the current range.
-  const stored = storage.getQuestionCount();
-  const value = Math.min(max, Math.max(min, stored ?? max));
+  // Stored choice (or the default); always clamp into the current range.
+  const value = Math.min(max, Math.max(min, storage.getQuestionCount()));
   slider.value = String(value);
   updateQuestionCountValue();
 }
@@ -143,11 +145,11 @@ function setupCodeInput(): void {
     if (code === 'Markot') {
       storage.setMoney((storage.getMoney() || 0) + 1000000);
       updateMoneyDisplay();
-      msg.style.color = 'var(--success-color)';
+      msg.className = 'field-message success';
       msg.textContent = t('code.ok', 'Kod poprawny! Otrzymujesz 1 000 000 PLN!');
       input.value = '';
     } else {
-      msg.style.color = 'var(--error-color)';
+      msg.className = 'field-message error';
       msg.textContent = t('code.bad', 'Niepoprawny kod!');
     }
     setTimeout(() => { msg.textContent = ''; }, 3000);

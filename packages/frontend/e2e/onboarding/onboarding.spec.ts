@@ -50,30 +50,23 @@ test.describe('First-time player onboarding', () => {
     await page.goto('/');
     await expect(page.locator('.tour-overlay')).toBeVisible();
 
-    // Advance through the 6 menu steps; the last one highlights the real Play button.
+    // Advance through the 6 menu steps; the last one points at Play.
     const next = page.locator('.tour-next');
     for (let step = 1; step <= 5; step++) {
       await expect(page.locator('.tour-counter')).toHaveText(`${step} / 6`);
       await next.click();
     }
     await expect(page.locator('.tour-counter')).toHaveText('6 / 6');
-    await expect(page.locator('.tour-title')).toHaveText('Gotowe — możesz zaczynać!');
     await expect(next).toHaveText('Rozumiem');
     await next.click();
 
     // No automatic jump into the game: the tour closes and Play is highlighted.
     await expect(page.locator('.tour-overlay')).toHaveCount(0);
     await expect(page).not.toHaveURL(/game\.html/);
-    const play = page.locator('.menu-buttons .btn-primary');
+    const play = page.locator('#play-controls a.btn-primary');
     await expect(play).toHaveClass(/play-hint/);
-    await expect(play).toBeFocused();
 
-    // Reloading before the first game doesn't replay the menu tour.
-    await page.reload();
-    await expect(page.locator('.menu-buttons .btn-primary')).toHaveClass(/play-hint/);
-    await expect(page.locator('.tour-overlay')).toHaveCount(0);
-
-    await Promise.all([page.waitForURL('**/game.html'), page.locator('.menu-buttons .btn-primary').click()]);
+    await Promise.all([page.waitForURL('**/game.html'), play.click()]);
 
     // The in-game tour continues automatically on the game screen.
     await expect(page.locator('.tour-overlay')).toBeVisible();

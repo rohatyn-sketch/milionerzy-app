@@ -144,9 +144,11 @@ body {
 .menu-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+    align-items: stretch;
+    gap: 20px;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
     text-align: center;
 }
 
@@ -763,6 +765,7 @@ body {
 }
 
 .auth-notice {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
     color: var(--secondary-color); font-size: 0.85rem;
     text-align: center; padding: 10px;
     background: rgba(255, 215, 0, 0.1);
@@ -1037,9 +1040,6 @@ body {
 .tip-formula { font-family: 'Courier New', monospace; color: var(--secondary-color); font-weight: bold; }
 
 /* === Setup toggle i panel === */
-.setup-toggle { position: fixed; bottom: 20px; right: 20px; z-index: 400; width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary-color); background: linear-gradient(135deg, rgba(30, 144, 255, 0.15) 0%, rgba(0, 0, 0, 0.6) 100%); color: var(--text-color); font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 0 15px var(--primary-glow); }
-.setup-toggle:hover { transform: scale(1.1); box-shadow: 0 0 25px var(--primary-glow); }
-.setup-toggle.has-questions { border-color: var(--success-color); box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
 
 .setup-panel { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 500; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7); opacity: 0; visibility: hidden; transition: opacity 0.25s ease; }
 .setup-panel.active { opacity: 1; visibility: visible; }
@@ -1144,18 +1144,9 @@ body {
     .class-selector { flex-direction: column; align-items: center; }
     .class-card { min-width: 200px; max-width: 280px; width: 100%; }
     .setup-panel-inner { width: calc(100vw - 20px); }
-    .setup-toggle { bottom: 12px; right: 12px; width: var(--tap-min); height: var(--tap-min); font-size: 1.3rem; }
     .btn-generate { font-size: 0.95rem; padding: 12px 16px; }
 }
 
-/* === Login prompt overlay === */
-.login-prompt-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 600; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7); animation: fadeIn 0.2s ease; }
-.login-prompt-box { width: 380px; max-width: calc(100vw - 40px); background: linear-gradient(135deg, rgba(15, 15, 50, 0.99) 0%, rgba(5, 5, 20, 0.99) 100%); border: 1px solid rgba(30, 144, 255, 0.3); border-radius: 16px; padding: 32px 28px; text-align: center; position: relative; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 20px var(--primary-glow); }
-.login-prompt-close { position: absolute; top: 6px; right: 8px; min-width: var(--tap-min); min-height: var(--tap-min); background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; line-height: 1; transition: color 0.3s ease; }
-.login-prompt-close:hover { color: var(--error-color); }
-.login-prompt-title { font-size: 1.2rem; color: var(--primary-color); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 2px; }
-.login-prompt-text { font-size: 0.95rem; color: var(--text-secondary); margin: 0 0 24px; line-height: 1.5; }
-.login-prompt-box .google-signin-btn { margin: 0 auto; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* === Samouczek dla nowych graczy (onboarding tour) === */
@@ -1475,4 +1466,248 @@ body.tour-open { padding-bottom: 60vh; }
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/* ======================================================================
+   App shell: top app bar + primary navigation (ui/app-shell.ts).
+   Wide screens: brand | Start Postepy Sklep | wallet, language, account.
+   Phones (<=720px): the same <nav> is a fixed bottom tab bar - three
+   visible destinations, no hamburger menu.
+   ====================================================================== */
+:root { --app-bar-h: 60px; --tab-bar-h: 64px; }
+html { scroll-padding-top: calc(var(--app-bar-h) + 8px); }
+
+.app-bar {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    min-height: var(--app-bar-h);
+    background: rgba(5, 5, 21, 0.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+.app-bar-inner {
+    max-width: 960px;
+    min-height: var(--app-bar-h);
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.app-bar-brand {
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--secondary-color);
+    text-decoration: none;
+    white-space: nowrap;
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+}
+/* The Start page shows the big title right below, so no brand in the bar. */
+[data-page="home"] .app-bar-brand { display: none; }
+
+.app-nav { flex: 1; }
+.app-nav-list { display: flex; gap: 4px; list-style: none; }
+.app-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap-min);
+    padding: 0 12px;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+.app-nav-link:hover { color: var(--text-color); background: rgba(255, 255, 255, 0.08); }
+.app-nav-link[aria-current="page"] { color: var(--text-color); background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 -3px 0 var(--primary-color); }
+.app-nav-link .icon { flex-shrink: 0; }
+
+.app-bar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.app-bar .auth-area { flex-direction: row; }
+
+.wallet-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--tap-min);
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    background: rgba(255, 215, 0, 0.08);
+    color: var(--secondary-color);
+    font-weight: 700;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.wallet-chip:hover { background: rgba(255, 215, 0, 0.16); }
+
+.google-signin-label-short { display: none; }
+
+/* Game: focused mode, only "end game" and the language switch. */
+.game-exit { color: var(--text-secondary); font-weight: 600; }
+
+.page { padding-top: 20px; padding-bottom: 48px; min-height: auto; }
+
+@media (max-width: 720px) {
+    html { scroll-padding-bottom: calc(var(--tab-bar-h) + 8px); }
+    /* backdrop-filter would make the bar the containing block of the fixed
+       bottom nav and pin the tab bar to the top. */
+    .app-bar { backdrop-filter: none; background: rgba(5, 5, 21, 0.97); --app-bar-h: 56px; }
+    body:has(.app-nav) { padding-bottom: calc(var(--tab-bar-h) + env(safe-area-inset-bottom)); }
+    .app-bar-inner { gap: 8px; padding: 0 12px; }
+    .app-bar-brand { font-size: 1.05rem; letter-spacing: 1px; }
+    .app-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 95;
+        background: rgba(5, 5, 21, 0.97);
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .app-nav-list { justify-content: space-around; gap: 0; }
+    .app-nav-list li { flex: 1; }
+    .app-nav-link {
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        width: 100%;
+        min-height: var(--tab-bar-h);
+        border-radius: 0;
+        font-size: 0.75rem;
+    }
+    .app-nav-link[aria-current="page"] { background: transparent; box-shadow: inset 0 3px 0 var(--primary-color); color: var(--primary-color); }
+    .google-signin-btn { padding: 0 12px 0 10px; }
+    .google-signin-label { display: none; }
+    .google-signin-label-short { display: inline; }
+    .page { padding-top: 12px; }
+}
+
+/* ======================================================================
+   Start page: 1 choose a subject -> 2 play, then daily, progress, settings
+   ====================================================================== */
+.hero { padding-top: 4px; }
+.hero .title { font-size: 3rem; letter-spacing: 6px; margin-bottom: 4px; }
+.hero .subtitle { font-size: 1.1rem; letter-spacing: 1px; margin-bottom: 0; }
+
+.section { width: 100%; text-align: left; }
+.card {
+    background: rgba(5, 5, 25, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    padding: 20px;
+}
+.card--accent { border: 2px solid var(--primary-color); box-shadow: 0 0 24px var(--primary-glow); }
+.section-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1.25rem; font-weight: 700; line-height: 1.3;
+    color: var(--text-color); margin-bottom: 12px;
+}
+.step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: var(--on-accent);
+    font-size: 0.95rem; font-weight: 800; flex-shrink: 0;
+}
+.section-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.section-header .section-title { margin-bottom: 0; }
+.section-desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px; }
+.page-title { font-size: 2rem; font-weight: 700; line-height: 1.2; color: var(--secondary-color); margin-bottom: 6px; text-shadow: none; }
+.page-subtitle { color: var(--text-secondary); }
+.link-arrow { color: var(--primary-color); font-size: 0.9rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; min-height: var(--tap-min); }
+.link-arrow::after { content: ' \2192'; white-space: pre; }
+.link-arrow:hover { text-decoration: underline; }
+
+/* Subject cards: a grid that fills the width. */
+.menu-container .class-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin: 0; max-width: none; }
+.menu-container .class-card { min-width: 0; max-width: none; width: auto; }
+.class-card.active .class-card-name::before { content: '\2713\00a0'; color: var(--success-color); font-weight: 700; }
+.class-card-add { cursor: pointer; gap: 2px; }
+.class-card-add-icon { color: var(--primary-color); display: flex; }
+.class-card-add-text { font-size: 1rem; font-weight: 700; color: var(--text-color); }
+.class-card-add-hint { font-size: 0.75rem; color: var(--text-secondary); }
+
+/* Play card */
+.start-card .question-count-control { max-width: none; margin: 0 0 14px; padding: 10px 14px; }
+.start-card .qc-label { margin-bottom: 6px; }
+.start-card .qc-hint { text-align: left; margin-top: 4px; }
+.play-controls { display: flex; flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 12px; }
+.start-card .play-controls .question-count-control { margin: 0; }
+.menu-buttons { display: flex; flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 0; }
+.btn-lg { padding: 14px 40px; font-size: 1.4rem; text-align: center; width: 100%; max-width: 480px; align-self: center; }
+.menu-secondary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+/* Practice and Formulas are secondary: outlined, not filled, no hexagon. */
+.menu-secondary .btn {
+    clip-path: none; box-shadow: none;
+    background: transparent; color: var(--text-color);
+    border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 10px;
+    padding: 10px 16px; font-size: 1rem; letter-spacing: 0; text-transform: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.menu-secondary .btn:hover { transform: none; background: rgba(255, 255, 255, 0.08); box-shadow: none; }
+.menu-secondary .btn:focus-visible { border-radius: 10px; }
+.practice-hint { margin: 0; max-width: none; text-align: left; font-size: 0.85rem; }
+.badge { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5em; padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); font-size: 0.75rem; font-weight: 700; letter-spacing: 0; }
+
+/* Daily challenge card */
+.menu-container .daily-section { margin: 0; text-align: center; }
+.menu-container .daily-section .section-title { justify-content: center; color: var(--secondary-color); }
+
+/* Progress summary card */
+.stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+.stat-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stat { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 10px; text-align: center; }
+.stat dt { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; }
+.stat dd { font-size: 1.25rem; font-weight: 700; color: var(--text-color); font-variant-numeric: tabular-nums; }
+.auth-nudge { font-size: 0.875rem; color: var(--text-secondary); background: rgba(255, 255, 255, 0.04); border-left: 3px solid var(--primary-color); border-radius: 0 8px 8px 0; padding: 8px 12px; margin-bottom: 14px; }
+.progress-card .leaderboard-section { background: none; border: none; padding: 0; margin: 0; text-align: left; }
+.progress-card .leaderboard-title { font-size: 1rem; color: var(--text-color); margin-bottom: 8px; }
+
+/* Settings card */
+.settings-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+.settings-row:first-of-type { border-top: none; padding-top: 0; }
+.settings-label { font-weight: 600; color: var(--text-color); }
+.settings-card .sound-toggles { margin-top: 0; }
+.code-input-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.text-input { min-height: var(--tap-min); padding: 8px 12px; border-radius: 8px; border: 1px solid #94a3b8; background: rgba(0, 0, 0, 0.35); color: var(--text-color); font: inherit; width: 11rem; }
+.text-input::placeholder { color: #94a3b8; }
+.btn-sm { clip-path: none; padding: 8px 16px; font-size: 0.9rem; letter-spacing: 1px; border-radius: 8px; }
+.btn-secondary.btn-sm { border: 1px solid #94a3b8; color: var(--text-color); background: transparent; }
+.field-message { font-size: 0.875rem; flex-basis: 100%; }
+.field-message:empty, .daily-countdown:empty { display: none; }
+.field-message.success { color: var(--success-color); }
+.field-message.error { color: var(--error-color); }
+
+/* Progress page */
+.achievements-container { display: flex; flex-direction: column; gap: 28px; padding: 20px 0; }
+.achievements-container .achievements-title { text-align: left; text-shadow: none; margin-bottom: 0; font-size: 2rem; }
+.achievements-container .achievements-subtitle { text-align: left; margin: -20px 0 0; }
+.achievements-container .achievements-stats { margin: 0; font-size: 1rem; color: var(--text-secondary); }
+.leaderboard-list { list-style: none; }
+
+/* Shop page */
+.shop-container { padding: 20px 0; }
+.shop-container .shop-title { text-align: left; font-size: 2rem; }
+.shop-container .shop-balance { text-align: left; }
+
+@media (max-width: 480px) {
+    .hero .title { font-size: 2rem; letter-spacing: 3px; }
+    .hero .subtitle { font-size: 0.95rem; }
+    .card { padding: 14px; }
+    .menu-container { gap: 16px; }
+    .menu-container .class-selector { grid-template-columns: 1fr 1fr; }
+    .menu-container .class-card-select, .class-card-add { min-height: 76px; padding: 10px 12px; }
+    .btn-lg { font-size: 1.2rem; padding: 12px 30px; }
+    .stat-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat { padding: 8px; }
+    .stat dd { font-size: 1.1rem; }
 }

@@ -10,7 +10,7 @@
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduFiszka - Osiagniecia</title>
+    <title>EduFiszka - Postepy</title>
     <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
@@ -18,23 +18,38 @@
     <div class="spotlight"></div>
     <div class="stars"></div>
 
-    <header class="top-bar">
-        <div class="top-bar-inner">
-            <a href="index.html" class="top-bar-back" data-i18n="nav.back">&#8592; Powrot do menu</a>
-            <div class="top-bar-actions" id="app-bar-actions"></div>
-        </div>
-    </header>
+    <header class="app-bar" id="app-bar"></header>
 
-    <main class="container" id="main">
+    <main class="container page" id="main">
         <div class="achievements-container">
-            <h1 class="achievements-title" data-i18n="ach.title">Osiagniecia</h1>
-            <p class="achievements-subtitle" data-i18n="ach.subtitle">Odblokuj wszystkie, aby stac sie prawdziwym mistrzem!</p>
+            <h1 class="page-title achievements-title" data-i18n="progress.title">Postepy</h1>
+            <p class="page-subtitle achievements-subtitle" data-i18n="progress.subtitle">Twoje statystyki, osiagniecia i najlepsze wyniki.</p>
 
-            <div class="achievements-stats">
-                <span><span data-i18n="ach.unlocked">Odblokowane:</span> <strong id="achievements-count">0</strong> / <strong id="achievements-total">13</strong></span>
-            </div>
+            <section class="section" aria-labelledby="stats-heading">
+                <h2 class="section-title" id="stats-heading" data-i18n="progress.statsTitle">Statystyki</h2>
+                <dl class="stat-grid stat-grid--4">
+                    <div class="stat"><dt data-i18n="money.labelShort">Pieniadze</dt><dd id="money-amount">0 PLN</dd></div>
+                    <div class="stat"><dt data-i18n="stats.playedShort">Rozegrane gry</dt><dd id="games-played">0</dd></div>
+                    <div class="stat"><dt data-i18n="stats.wonShort">Wygrane</dt><dd id="games-won">0</dd></div>
+                    <div class="stat"><dt data-i18n="stats.bestStreakShort">Najlepsza seria</dt><dd id="best-streak">0</dd></div>
+                </dl>
+            </section>
 
-            <ul class="achievements-grid" id="achievements-grid"></ul>
+            <section class="section" aria-labelledby="ach-heading">
+                <div class="section-header">
+                    <h2 class="section-title" id="ach-heading" data-i18n="ach.title">Osiagniecia</h2>
+                    <p class="achievements-stats">
+                        <span data-i18n="ach.unlocked">Odblokowane:</span> <strong id="achievements-count">0</strong> / <strong id="achievements-total">13</strong>
+                    </p>
+                </div>
+                <p class="section-desc" data-i18n="ach.subtitle">Odblokuj wszystkie, aby stac sie prawdziwym mistrzem!</p>
+                <ul class="achievements-grid" id="achievements-grid"></ul>
+            </section>
+
+            <section class="section" aria-labelledby="lb-heading">
+                <h2 class="section-title" id="lb-heading" data-i18n="lb.title">Najlepsze wyniki</h2>
+                <div id="leaderboard-full"></div>
+            </section>
         </div>
     </main>
 

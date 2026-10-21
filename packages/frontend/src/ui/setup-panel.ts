@@ -4,29 +4,17 @@ import { aiRefusalMessage } from '../features/ai-budget';
 import { setQuestions } from '../features/questions';
 import { renderClassCards } from './class-selector';
 import { t } from '../features/i18n';
-import { setupDialog, openDialog, closeDialog, isDialogOpen } from './dialog';
+import { setupDialog, closeDialog } from './dialog';
 
 let uploadedImageBase64: string | null = null;
 let uploadedImageMimeType: string | null = null;
 
 export function setupSetupPanel(): void {
-  const toggleBtn = document.getElementById('setup-toggle');
   const panel = document.getElementById('setup-panel');
-  const closeBtn = document.getElementById('setup-panel-close');
-
-  if (!toggleBtn || !panel) return;
-
-  const registry = storage.getClassesRegistry() || [];
-  if (registry.some(c => !c.isDefault)) {
-    toggleBtn.classList.add('has-questions');
-  }
-
-  // Close button, backdrop, Esc, focus trap: ui/dialog.ts.
-  setupDialog(panel, closeBtn);
-  toggleBtn.addEventListener('click', () => {
-    if (isDialogOpen(panel)) closeDialog(panel);
-    else openDialog(panel, { initialFocus: document.getElementById('class-name-input') });
-  });
+  if (!panel) return;
+  // Opened from the "Dodaj klase" card (ui/class-selector.ts). Close button,
+  // backdrop, Esc and focus trap: ui/dialog.ts.
+  setupDialog(panel, document.getElementById('setup-panel-close'));
 }
 
 export function setupImageUpload(): void {
@@ -173,8 +161,6 @@ export function setupGenerateButton(onGenerated?: () => void): void {
       if (statusEl) { statusEl.textContent = t('setup.generatedN', 'Wygenerowano {n} pytan!', { n: questions.length }); statusEl.className = 'generate-status success'; }
       onGenerated?.();
 
-      const toggleBtn = document.getElementById('setup-toggle');
-      if (toggleBtn) toggleBtn.classList.add('has-questions');
     } catch (err: any) {
       if (statusEl) { statusEl.textContent = aiRefusalMessage(err) ?? err.message; statusEl.className = 'generate-status error'; }
     } finally {

@@ -165,15 +165,29 @@ export async function updateUI(): Promise<void> {
     generateBtn.title = isLoggedIn() ? '' : t('setup.genLoginTitle', 'Zaloguj sie, aby generowac pytania');
   }
   if (authNotice) {
-    authNotice.style.display = isLoggedIn() ? 'none' : 'block';
+    authNotice.style.display = isLoggedIn() ? 'none' : '';
   }
 
   // Re-render class cards when auth state changes
   const { renderClassCards } = await import('../ui/class-selector');
   renderClassCards();
 
+  // Inline "sign in" button inside the add-class panel.
+  const setupSignin = document.getElementById('setup-signin-btn');
+  if (setupSignin && !setupSignin.dataset.bound) {
+    setupSignin.dataset.bound = 'true';
+    setupSignin.addEventListener('click', () => signIn());
+  }
+
   // Update practice button (it depends on auth state)
   renderPracticeButton(isLoggedIn());
+
+  // Signed-out nudge on the Start page's progress card: what signing in buys.
+  const nudge = document.getElementById('auth-nudge');
+  if (nudge) {
+    nudge.hidden = isLoggedIn();
+    nudge.textContent = isLoggedIn() ? '' : t('auth.hint', 'Zaloguj sie, aby zapisac postepy i tworzyc nowe klasy');
+  }
 }
 
 function escapeHtml(text: string): string {

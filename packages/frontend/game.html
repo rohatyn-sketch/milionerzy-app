@@ -17,11 +17,10 @@
     <div class="spotlight"></div>
     <div class="stars"></div>
 
-    <!-- Top bar: back link + language switcher in one row (the back link used
-         to be fixed and overlapped the game header on phones). -->
-    <header class="top-bar">
+    <!-- Focused game mode: no navigation, one clearly labelled exit. -->
+    <header class="top-bar top-bar--game">
         <div class="top-bar-inner">
-            <a href="index.html" id="back-to-menu" class="top-bar-back" data-i18n="nav.back">&#8592; Powrot do menu</a>
+            <a href="index.html" id="back-to-menu" class="top-bar-back game-exit"><span aria-hidden="true">&#8592;</span> <span data-i18n="nav.exitGame">Zakoncz gre</span></a>
             <div class="top-bar-actions" id="app-bar-actions"></div>
         </div>
     </header>

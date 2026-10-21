@@ -45,18 +45,18 @@ export function renderFull(containerId: string): void {
   }
 
   const medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
-  let html = '<div class="leaderboard-list">';
+  let html = '<ol class="leaderboard-list">';
   lb.forEach((entry, i) => {
     html += `
-      <div class="leaderboard-entry ${i < 3 ? 'top-3' : ''}">
-        <span class="leaderboard-rank">${medals[i] || (i + 1)}</span>
+      <li class="leaderboard-entry ${i < 3 ? 'top-3' : ''}">
+        <span class="leaderboard-rank" role="img" aria-label="#${i + 1}">${medals[i] || (i + 1)}</span>
         <span class="leaderboard-name">${entry.name}</span>
         <span class="leaderboard-score">${formatMoney(entry.score)}</span>
         <span class="leaderboard-date">${formatDate(entry.date)}</span>
-      </div>
+      </li>
     `;
   });
-  html += '</div>';
+  html += '</ol>';
   container.innerHTML = html;
 }
 

@@ -1,14 +1,35 @@
-// achievements-entry.ts - Achievements page entry point
+// achievements-entry.ts - "Postepy" (Progress) page entry point: stats,
+// achievements and the full best-scores list. The file and URL keep their
+// historical name (achievements.html) so existing links keep working.
 import './css/style.css';
+import { formatMoney } from '@milionerzy/shared';
+import { storage } from './state/storage';
 import { applyTheme } from './ui/theme';
+import { mountAppShell } from './ui/app-shell';
+import { renderFull as renderLeaderboard } from './features/leaderboard';
 import { getAllWithStatus } from './features/achievements';
 import { initI18n, t } from './features/i18n';
 
 document.addEventListener('DOMContentLoaded', () => {
+  storage.init();
+  mountAppShell('progress');
   initI18n();
   applyTheme();
+  renderStats();
   renderAchievements();
+  renderLeaderboard('leaderboard-full');
 });
+
+function renderStats(): void {
+  const set = (id: string, v: string) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = v;
+  };
+  set('money-amount', formatMoney(storage.getMoney() || 0));
+  set('games-played', String(storage.getGamesPlayed() || 0));
+  set('games-won', String(storage.getGamesWon() || 0));
+  set('best-streak', String(storage.getBestStreak() || 0));
+}
 
 function renderAchievements(): void {
   const grid = document.getElementById('achievements-grid');
@@ -51,7 +72,7 @@ function renderAchievements(): void {
     card.innerHTML = `
       <div class="achievement-icon" aria-hidden="true">${achievement.unlocked ? achievement.icon : '&#128274;'}</div>
       <div class="achievement-info">
-        <h2 class="achievement-name">${t(`ach.${achievement.id}.name`, achievement.name)}</h2>
+        <h3 class="achievement-name">${t(`ach.${achievement.id}.name`, achievement.name)}</h3>
         <p class="achievement-description">${t(`ach.${achievement.id}.desc`, achievement.description)}</p>
         <p class="achievement-status">${status}</p>
         ${progressHtml}

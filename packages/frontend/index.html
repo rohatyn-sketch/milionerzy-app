@@ -18,73 +18,95 @@
     <div class="spotlight"></div>
     <div class="stars"></div>
 
-    <!-- Top bar: language switcher + sign-in in one row (they used to be
-         separate fixed elements that overlapped each other and the title). -->
-    <header class="top-bar">
-        <div class="top-bar-inner">
-            <div class="top-bar-actions" id="app-bar-actions">
-                <div class="auth-area" id="auth-area"></div>
-            </div>
-        </div>
-    </header>
+    <!-- App bar + primary navigation (rendered by ui/app-shell.ts): brand,
+         Start / Postepy / Sklep, wallet, language, sign-in. On phones the
+         navigation becomes a bottom tab bar. -->
+    <header class="app-bar" id="app-bar"></header>
 
-    <main class="container" id="main">
+    <main class="container page" id="main">
         <div class="menu-container">
-            <h1 class="title">EduFiszka</h1>
-            <p class="subtitle" id="subtitle-text"></p>
+            <header class="hero">
+                <h1 class="title">EduFiszka</h1>
+                <p class="subtitle" id="subtitle-text"></p>
+            </header>
 
-            <div class="class-selector" id="class-selector"></div>
+            <!-- 1. Choose a subject -->
+            <section class="section" aria-labelledby="subject-heading">
+                <h2 class="section-title" id="subject-heading"><span class="step-num" aria-hidden="true">1</span> <span data-i18n="home.subjectTitle">Wybierz przedmiot</span></h2>
+                <div class="class-selector" id="class-selector" role="group" aria-labelledby="subject-heading"></div>
+            </section>
 
-            <div class="question-count-control" id="question-count-control">
-                <label class="qc-label" for="question-count-slider">
-                    <span class="qc-label-text" data-i18n="qc.label">Liczba pytan</span>
-                    <span class="qc-value" id="question-count-value">10</span>
-                </label>
-                <input type="range" id="question-count-slider" class="qc-slider" min="5" max="50" step="1" value="10">
-                <div class="qc-hint" data-i18n="qc.hint">Ile pytan w jednej grze</div>
-            </div>
+            <!-- 2. Play: the one primary action on the page -->
+            <section class="section card card--accent start-card" id="start-card" aria-labelledby="start-heading">
+                <h2 class="section-title" id="start-heading"><span class="step-num" aria-hidden="true">2</span> <span data-i18n="home.startTitle">Zagraj</span></h2>
 
-            <div class="menu-buttons">
-                <a href="game.html" class="btn btn-primary" data-i18n="menu.play">Graj</a>
-                <a href="game.html?practice=true" class="btn btn-practice" id="practice-btn" aria-describedby="practice-hint"><span data-i18n="menu.practice">Cwicz</span> <span id="practice-count"></span></a>
-                <p class="practice-hint" id="practice-hint" hidden></p>
-                <a href="shop.html" class="btn btn-secondary" data-i18n="menu.shop">Sklep</a>
-                <button type="button" class="btn btn-help" id="formulas-btn" aria-haspopup="dialog" data-i18n="menu.formulas">Wzory</button>
-            </div>
+                <div class="play-controls" id="play-controls">
+                <div class="question-count-control" id="question-count-control">
+                    <label class="qc-label" for="question-count-slider">
+                        <span class="qc-label-text" data-i18n="qc.label">Liczba pytan</span>
+                        <span class="qc-value" id="question-count-value">10</span>
+                    </label>
+                    <input type="range" id="question-count-slider" class="qc-slider" min="5" max="50" step="1" value="10" aria-describedby="qc-hint">
+                    <div class="qc-hint" id="qc-hint" data-i18n="qc.hint">Ile pytan w jednej grze</div>
+                </div>
 
-            <!-- Wyzwanie dnia -->
-            <div class="daily-section" id="daily-section">
-                <h2 class="daily-title" data-i18n="daily.title">Wyzwanie dnia</h2>
+                <a href="game.html" class="btn btn-primary btn-lg" data-i18n="menu.play">Graj</a>
+                </div>
+
+                <div class="menu-buttons">
+                    <div class="menu-secondary">
+                        <a href="game.html?practice=true" class="btn btn-practice" id="practice-btn" aria-describedby="practice-hint"><span data-i18n="menu.practice">Cwicz bledy</span> <span id="practice-count" class="badge"></span></a>
+                        <button type="button" class="btn btn-help" id="formulas-btn" aria-haspopup="dialog" data-i18n="menu.formulas">Wzory</button>
+                    </div>
+                    <p class="practice-hint" id="practice-hint" hidden></p>
+                </div>
+            </section>
+
+            <!-- 3. Daily challenge -->
+            <section class="section card daily-section" id="daily-section" aria-labelledby="daily-heading">
+                <h2 class="section-title daily-title" id="daily-heading" data-i18n="daily.title">Wyzwanie dnia</h2>
                 <p class="daily-status" id="daily-status"></p>
                 <a href="game.html?daily=true" class="btn btn-daily" id="daily-btn">Zagraj</a>
                 <p class="daily-countdown" id="daily-countdown" aria-live="polite"></p>
-            </div>
+            </section>
 
-            <!-- Tablica wynikow - podglad -->
-            <div class="leaderboard-section">
-                <h2 class="leaderboard-title" data-i18n="lb.title">Najlepsze wyniki</h2>
-                <div id="leaderboard-preview"></div>
-            </div>
+            <!-- 4. Progress summary (full view on the Postepy page) -->
+            <section class="section card progress-card" aria-labelledby="progress-heading">
+                <div class="section-header">
+                    <h2 class="section-title" id="progress-heading" data-i18n="home.progressTitle">Twoje postepy</h2>
+                    <a class="link-arrow" href="achievements.html" data-i18n="home.progressLink">Wszystkie postepy</a>
+                </div>
+                <p class="auth-nudge" id="auth-nudge" hidden></p>
+                <dl class="stat-grid stats-display">
+                    <div class="stat"><dt data-i18n="stats.playedShort">Rozegrane gry</dt><dd id="games-played">0</dd></div>
+                    <div class="stat"><dt data-i18n="stats.wonShort">Wygrane</dt><dd id="games-won">0</dd></div>
+                    <div class="stat"><dt data-i18n="stats.bestStreakShort">Najlepsza seria</dt><dd id="best-streak">0</dd></div>
+                </dl>
+                <div class="leaderboard-section">
+                    <h3 class="leaderboard-title" data-i18n="lb.title">Najlepsze wyniki</h3>
+                    <div id="leaderboard-preview"></div>
+                </div>
+            </section>
 
-            <div class="money-display">
-                <span data-i18n="money.label">Twoje pieniadze:</span> <span id="money-amount">0 PLN</span>
-            </div>
-
-            <div class="stats-display" style="margin-top: 20px; color: var(--text-secondary); font-size: 0.9rem;">
-                <p><span data-i18n="stats.played">Rozegrane gry:</span> <span id="games-played">0</span> | <span data-i18n="stats.won">Wygrane:</span> <span id="games-won">0</span> | <span data-i18n="stats.bestStreak">Najlepsza seria:</span> <span id="best-streak">0</span></p>
-            </div>
-
-            <!-- Przyciski dzwieku -->
-            <div class="sound-toggles">
-                <button type="button" class="sound-toggle" id="sfx-toggle" aria-pressed="true">SFX: ON</button>
-                <button type="button" class="sound-toggle" id="music-toggle" aria-pressed="false">Muzyka: OFF</button>
-            </div>
-
-            <div class="code-input-container" style="margin-top: 20px;">
-                <input type="text" id="code-input" aria-label="Kod bonusowy" data-i18n-aria-label="code.label" autocomplete="off" placeholder="Wpisz kod..." data-i18n-placeholder="code.placeholder" style="padding: 10px; border-radius: 8px; border: 2px solid var(--primary-color); background: rgba(255,255,255,0.1); color: var(--text-color); font-size: 1rem; width: 150px; text-align: center;">
-                <button type="button" id="code-btn" class="btn" data-i18n="code.use" style="padding: 10px 20px; margin-left: 10px;">Uzyj kodu</button>
-                <p id="code-message" role="status" aria-live="polite" style="margin-top: 10px; font-size: 0.9rem;"></p>
-            </div>
+            <!-- 5. Settings -->
+            <section class="section card settings-card" aria-labelledby="settings-heading">
+                <h2 class="section-title" id="settings-heading" data-i18n="home.settingsTitle">Ustawienia</h2>
+                <div class="settings-row">
+                    <span class="settings-label" data-i18n="settings.sound">Dzwiek</span>
+                    <div class="sound-toggles">
+                        <button type="button" class="sound-toggle" id="sfx-toggle" aria-pressed="true">SFX: ON</button>
+                        <button type="button" class="sound-toggle" id="music-toggle" aria-pressed="false">Muzyka: OFF</button>
+                    </div>
+                </div>
+                <div class="settings-row code-input-container">
+                    <label class="settings-label" for="code-input" data-i18n="code.label">Kod bonusowy</label>
+                    <div class="code-input-row">
+                        <input type="text" id="code-input" class="text-input" placeholder="Wpisz kod..." data-i18n-placeholder="code.placeholder" autocomplete="off">
+                        <button type="button" id="code-btn" class="btn btn-secondary btn-sm" data-i18n="code.use">Uzyj kodu</button>
+                    </div>
+                    <p id="code-message" class="field-message" role="status" aria-live="polite"></p>
+                </div>
+            </section>
         </div>
     </main>
 
@@ -165,9 +187,6 @@
         </div>
     </div>
 
-    <!-- Toggle konfiguracji -->
-    <button type="button" class="setup-toggle" id="setup-toggle" aria-haspopup="dialog" title="Konfiguracja pytan AI" data-i18n-title="setup.toggleTitle" aria-label="Konfiguracja pytan AI" data-i18n-aria-label="setup.toggleTitle">&#9881;</button>
-
     <!-- Panel konfiguracji AI -->
     <div class="setup-panel" id="setup-panel">
       <div class="setup-panel-inner" role="dialog" aria-modal="true" aria-labelledby="setup-title">
@@ -193,7 +212,12 @@
                 </div>
                 <input type="file" id="image-upload" accept="image/jpeg,image/png" style="display: none;">
             </div>
-            <p class="auth-notice" id="auth-notice" data-i18n="setup.authNotice">Zaloguj sie kontem Google, aby generowac pytania.</p>
+            <!-- Signed-out users see the form with this inline sign-in prompt
+                 (it replaces the separate "sign-in required" pop-up). -->
+            <div class="auth-notice" id="auth-notice">
+                <p data-i18n="setup.authNotice">Zaloguj sie kontem Google, aby generowac pytania.</p>
+                <button type="button" class="btn btn-secondary btn-sm" id="setup-signin-btn" data-i18n="auth.signIn">Zaloguj przez Google</button>
+            </div>
             <button class="btn-generate" id="generate-btn" data-i18n="setup.generate">Generuj pytania</button>
             <div class="generate-status" id="generate-status" role="status" aria-live="polite"></div>
         </div>

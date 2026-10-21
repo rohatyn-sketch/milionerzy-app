@@ -27,27 +27,27 @@ const MENU_STEPS: Step[] = [
   {
     target: '#class-selector',
     title: { pl: 'Wybierz przedmiot', en: 'Pick a subject' },
-    targetText: { pl: /Fizyka - Klasa 7/, en: /Fizyka - Klasa 7/ },
+    targetText: { pl: /Fizyka - Klasa 7[\s\S]*Dodaj klase/, en: /Fizyka - Klasa 7[\s\S]*Add class/ },
   },
   {
-    target: '#question-count-control',
-    title: { pl: 'Liczba pytań', en: 'Number of questions' },
-    targetText: { pl: /Liczba pytan/, en: /Questions/ },
+    target: '#play-controls',
+    title: { pl: 'Zagraj', en: 'Play' },
+    targetText: { pl: /Liczba pytan[\s\S]*Graj/, en: /Questions[\s\S]*Play/ },
   },
   {
-    target: '.money-display',
+    target: '#wallet-chip',
     title: { pl: 'Twoje pieniądze', en: 'Your money' },
     targetText: { pl: /PLN/, en: /PLN/ },
   },
   {
-    target: '#practice-btn',
-    title: { pl: 'Tryb ćwiczeń', en: 'Practice mode' },
-    targetText: { pl: /Cwicz/, en: /Practice/ },
+    target: '.app-nav',
+    title: { pl: 'Menu', en: 'Menu' },
+    targetText: { pl: /Start[\s\S]*Postepy[\s\S]*Sklep/, en: /Home[\s\S]*Progress[\s\S]*Shop/ },
   },
   {
-    target: '.menu-buttons .btn-primary',
+    target: '#play-controls a.btn-primary',
     title: { pl: 'Gotowe — możesz zaczynać!', en: "You're all set!" },
-    targetText: { pl: /^Graj$/, en: /^Play$/ },
+    targetText: { pl: /Graj/, en: /Play/ },
   },
 ];
 
@@ -105,6 +105,21 @@ async function checkStep(page: Page, steps: Step[], i: number, lang: Lang): Prom
         return inside ? 'inside' : `outside ${JSON.stringify(b)}`;
       }, { message: `step ${i + 1}: ${step.target} fully in viewport`, timeout: 5000 })
       .toBe('inside');
+
+    // Not hidden behind the sticky app bar or the phone tab bar: the element
+    // itself is what is on top at its centre and near its top and bottom edges
+    // (the tour overlay is hidden for this probe).
+    await expect
+      .poll(async () => target.evaluate((el) => {
+        const overlay = document.querySelector<HTMLElement>('.tour-overlay')!;
+        overlay.style.visibility = 'hidden';
+        const r = el.getBoundingClientRect();
+        const pts = [[r.left + r.width / 2, r.top + r.height / 2], [r.left + r.width / 2, r.top + 3], [r.left + r.width / 2, r.bottom - 3]];
+        const hidden = pts.filter(([x, y]) => { const hit = document.elementFromPoint(x, y); return !hit || !(el === hit || el.contains(hit)); });
+        overlay.style.visibility = '';
+        return hidden.length === 0 ? 'unobstructed' : `covered at ${JSON.stringify(hidden)}`;
+      }), { message: `step ${i + 1}: ${step.target} not covered by other UI`, timeout: 5000 })
+      .toBe('unobstructed');
 
     // The highlight frame surrounds the element (8px padding in the tour).
     await expect
@@ -199,10 +214,14 @@ for (const vp of VIEWPORTS) {
       await test.step('tour closes on the menu; Play is highlighted and the player starts the game', async () => {
         await expect(page.locator('.tour-overlay')).toHaveCount(0);
         await expect(page).not.toHaveURL(/game\.html/);
-        const play = page.locator('.menu-buttons .btn-primary');
+        const play = page.locator('#play-controls a.btn-primary');
         await expect(play).toHaveClass(/play-hint/);
         await expect(play).toBeFocused();
-        await Promise.all([page.waitForURL('**/game.html'), play.click()]);
+        // Reloading before playing doesn't replay the menu tour, Play stays highlighted.
+        await page.reload();
+        await expect(page.locator('#play-controls a.btn-primary')).toHaveClass(/play-hint/);
+        await expect(page.locator('.tour-overlay')).toHaveCount(0);
+        await Promise.all([page.waitForURL('**/game.html'), page.locator('#play-controls a.btn-primary').click()]);
       });
 
       await test.step('in-game tour', async () => {
