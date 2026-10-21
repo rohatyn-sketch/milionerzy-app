@@ -94,6 +94,8 @@ test.describe('Phone layout (375px)', () => {
     expect(overlaps(lang, signin)).toBe(false);
     expect(overlaps(signin, title)).toBe(false);
     expect(signin.x + signin.width).toBeLessThanOrEqual(375);
+    // Language and sign-in sit in one row, vertically centred on each other.
+    expect(Math.abs((lang.y + lang.height / 2) - (signin.y + signin.height / 2))).toBeLessThanOrEqual(1);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });

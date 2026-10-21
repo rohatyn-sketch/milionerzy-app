@@ -745,33 +745,7 @@ body {
 .shop-item-btn:disabled { background: #374151; color: #cbd5e1; cursor: not-allowed; }
 
 /* === Auth Area (inside the top bar) === */
-.auth-area { display: flex; flex-direction: column; align-items: flex-end; }
-
-.auth-user {
-    display: flex; align-items: center; gap: 10px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 30px; padding: 6px 14px 6px 6px;
-}
-
-.auth-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--primary-color); }
-
-.auth-name {
-    color: var(--text-color); font-size: 0.9rem;
-    max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-/* Logging out is not destructive, so it is a neutral outline button, not red. */
-.auth-logout-btn {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    color: var(--text-color); padding: 0 14px;
-    min-height: var(--tap-min);
-    border-radius: 999px; font-size: 0.8rem;
-    cursor: pointer; transition: background 0.3s ease;
-}
-
-.auth-logout-btn:hover { background: rgba(255, 255, 255, 0.12); }
+.auth-area { display: flex; align-items: center; }
 
 .google-signin-btn {
     display: flex; align-items: center; gap: 10px;
@@ -784,12 +758,6 @@ body {
 }
 .google-signin-btn:hover { background: #f7f8f8; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 .google-icon { flex-shrink: 0; }
-
-.auth-hint {
-    color: var(--text-secondary); font-size: 0.75rem;
-    margin-top: 6px; text-align: right;
-    max-width: 200px; line-height: 1.3;
-}
 
 .class-card-tooltip {
     display: none; font-size: 0.7rem; color: var(--secondary-color);
@@ -805,17 +773,57 @@ body {
     border-radius: 8px; margin-bottom: 10px;
 }
 
+/* Signed-out: compact on phones ("Zaloguj"), full Google label on wider screens. */
+.google-signin-label-short { display: none; }
 @media (max-width: 480px) {
-    .auth-name { display: none; }
-    .auth-user { padding: 4px 10px 4px 4px; }
+    .google-signin-btn { padding: 0 14px 0 10px; }
+    .google-signin-label { display: none; }
+    .google-signin-label-short { display: inline; }
 }
+
+/* Signed-in: avatar button + dropdown (name, email, Wyloguj). */
+.account-menu { position: relative; }
+.account-btn {
+    width: var(--tap-min); height: var(--tap-min); padding: 0;
+    border: 2px solid var(--primary-color); border-radius: 50%;
+    background: transparent; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: box-shadow 0.2s ease;
+}
+.account-btn:hover, .account-btn[aria-expanded="true"] { box-shadow: 0 0 12px var(--primary-glow); }
+.account-avatar {
+    position: relative; overflow: hidden; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--accent); color: var(--on-accent); font-weight: 700;
+}
+.account-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.account-avatar--button { width: 36px; height: 36px; font-size: 0.85rem; }
+.account-avatar--panel { width: 40px; height: 40px; font-size: 0.95rem; flex-shrink: 0; }
+.account-panel {
+    position: absolute; top: calc(100% + 8px); right: 0; z-index: 70;
+    min-width: 240px; max-width: calc(100vw - 30px);
+    background: #12123a; border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    padding: 8px; text-align: left;
+}
+.account-panel[hidden] { display: none; }
+.account-panel-head { display: flex; align-items: center; gap: 12px; padding: 8px 8px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); margin-bottom: 6px; }
+.account-who { min-width: 0; }
+.account-name { color: var(--text-color); font-weight: 600; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-email { color: var(--text-secondary); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-item {
+    display: block; width: 100%; min-height: var(--tap-min); padding: 0 10px;
+    background: transparent; border: 0; border-radius: 8px;
+    color: var(--text-color); font-size: 0.95rem; text-align: left; cursor: pointer;
+}
+.account-item:hover, .account-item:focus-visible { background: rgba(255, 255, 255, 0.1); }
 
 /* === Top bar: back link / language / sign-in in one row ===
    These used to be separately fixed-positioned and overlapped each other, the
    title and the game header on phones. A normal in-flow row can't overlap. */
 .top-bar { position: relative; z-index: 50; }
-.top-bar-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px 15px 0; }
-.top-bar-actions { display: flex; align-items: flex-start; gap: 10px; margin-left: auto; }
+.top-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 15px 0; }
+.top-bar-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .top-bar-back { color: var(--text-secondary); text-decoration: none; font-size: 1.1rem; display: inline-flex; align-items: center; gap: 10px; min-height: var(--tap-min); padding: 0 8px; margin-left: -8px; border-radius: 8px; transition: color 0.3s ease; }
 .top-bar-back:hover { color: var(--primary-color); }
 /* The game no longer needs a full extra screen of height below the bar. */
@@ -1578,7 +1586,6 @@ html { scroll-padding-top: calc(var(--app-bar-h) + 8px); }
         font-size: 0.75rem;
     }
     .app-nav-link[aria-current="page"] { background: transparent; box-shadow: inset 0 3px 0 var(--primary-color); color: var(--primary-color); }
-    .auth-name { display: none; }
     .google-signin-btn { padding: 0 12px 0 10px; }
     .google-signin-label { display: none; }
     .google-signin-label-short { display: inline; }

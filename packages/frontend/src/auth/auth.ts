@@ -11,6 +11,7 @@ import { loadProgress, saveProgress } from '../api/progress.api';
 import { storage } from '../state/storage';
 import { scheduleSave } from '../state/sync';
 import { t } from '../features/i18n';
+import { renderAccountMenu } from '../ui/account-menu';
 import { renderPracticeButton } from '../ui/practice-button';
 
 const googleProvider = new GoogleAuthProvider();
@@ -137,14 +138,7 @@ export async function updateUI(): Promise<void> {
   if (!loginArea) return;
 
   if (currentUser) {
-    loginArea.innerHTML = `
-      <div class="auth-user">
-        <img src="${currentUser.photoURL || ''}" alt="" class="auth-avatar" referrerpolicy="no-referrer">
-        <span class="auth-name">${escapeHtml(currentUser.displayName || '')}</span>
-        <button type="button" class="auth-logout-btn" id="logout-btn">${t('auth.logout', 'Wyloguj')}</button>
-      </div>
-    `;
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
+    renderAccountMenu(loginArea, currentUser, () => {
       logOut().then(() => window.location.reload());
     });
   } else {
