@@ -196,6 +196,8 @@ const EN: Record<string, string> = {
   // Auth
   'auth.signIn': 'Sign in with Google',
   'auth.logout': 'Log out',
+  'auth.account': 'Account',
+  'auth.signInShort': 'Sign in',
   'auth.hint': 'Sign in to save your progress and create new classes',
   'auth.loginError': 'Sign-in error: ',
   'practice.loginReq': 'Sign in to use practice mode',
