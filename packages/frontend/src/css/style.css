@@ -1711,3 +1711,12 @@ html { scroll-padding-top: calc(var(--app-bar-h) + 8px); }
     .stat { padding: 8px; }
     .stat dd { font-size: 1.1rem; }
 }
+
+/* Small AI disclaimer at the foot of the Postepy page. */
+.ai-disclaimer {
+    margin: 32px auto 8px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}

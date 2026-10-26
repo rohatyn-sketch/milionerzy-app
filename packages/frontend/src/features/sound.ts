@@ -94,6 +94,12 @@ export function stopBackgroundMusic(): void {
   }
 }
 
+// Pause the music without rewinding, so it can resume from the same spot — used
+// to duck the background track while a podcast is playing.
+export function pauseBackgroundMusic(): void {
+  if (backgroundMusic) backgroundMusic.pause();
+}
+
 export function toggleSfx(): boolean {
   const enabled = !isSfxEnabled();
   storage.setSoundSfx(enabled);

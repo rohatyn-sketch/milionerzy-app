@@ -1,5 +1,6 @@
 import { t } from '../features/i18n';
 import { openDialog, setupDialog, closeDialog } from '../ui/dialog';
+import { pauseBackgroundMusic, playBackgroundMusic } from '../features/sound';
 
 let playerEl: HTMLElement | null = null;
 let audioEl: HTMLAudioElement | null = null;
@@ -45,6 +46,10 @@ function createPlayerHTML(title: string): string {
 
 export function showAudioPlayer(audioUrl: string, title: string, transcript?: string): void {
   hideAudioPlayer();
+
+  // Duck the background music so it doesn't talk over the podcast; it resumes
+  // when the player closes (hideAudioPlayer).
+  pauseBackgroundMusic();
 
   document.body.insertAdjacentHTML('beforeend', createPlayerHTML(title));
   playerEl = document.getElementById('audio-player-overlay');
@@ -141,5 +146,7 @@ export function hideAudioPlayer(): void {
     el.classList.remove('active');
     playerEl = null;
     setTimeout(() => el.remove(), 300);
+    // Resume the background music the podcast was ducking (no-op if music off).
+    playBackgroundMusic();
   }
 }

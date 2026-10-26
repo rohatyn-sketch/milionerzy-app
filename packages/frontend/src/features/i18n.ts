@@ -148,6 +148,7 @@ const EN: Record<string, string> = {
   'progress.title': 'Progress',
   'progress.subtitle': 'Your stats, achievements and best scores.',
   'progress.statsTitle': 'Stats',
+  'ai.disclaimer': 'AI can make mistakes.',
   'common.close': 'Close',
 
   // Main menu
