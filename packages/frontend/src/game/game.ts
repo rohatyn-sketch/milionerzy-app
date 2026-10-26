@@ -457,7 +457,10 @@ function endGame(): void {
     if (document.querySelector('.tour-overlay')) return;
     els.endScreen?.querySelector<HTMLElement>('.end-buttons a, .end-buttons button')?.focus({ preventScroll: true });
   });
-  scheduleSave();
+  // Save right away (not the 3s debounce): the end-screen buttons are plain
+  // links, so a quick click would otherwise cancel a still-pending save and
+  // lose this round's wrong answers from the Practice list.
+  void immediateSave();
 
   // Completing a normal game is the end of the first-time guide.
   if (!isPracticeMode && !isDailyChallenge) finishOnboarding();
@@ -513,9 +516,23 @@ function confirmExit(): void {
     return;
   }
   if (confirm(t('game.confirmExit', 'Czy na pewno chcesz wyjsc?'))) {
-    immediateSave();
-    window.location.href = 'index.html';
+    void leaveToMenu();
   }
+}
+
+// Leaving mid-game: wait for the progress save to reach the server before
+// navigating. The save carries this round's wrong answers (the Practice list);
+// if we navigate first the request is cancelled and the menu's
+// restore-from-server overwrites them. The timer is stopped so it can't log a
+// timeout while we wait, and the wait is capped so a slow/offline network can
+// never trap the player on the screen.
+async function leaveToMenu(): Promise<void> {
+  stopTimer();
+  await Promise.race([
+    immediateSave(),
+    new Promise<void>((resolve) => setTimeout(resolve, 4000)),
+  ]);
+  window.location.href = 'index.html';
 }
 
 export function initGame(): void {
