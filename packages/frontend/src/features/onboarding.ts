@@ -313,7 +313,7 @@ function menuSteps(): TourStep[] {
     {
       target: '.app-nav',
       title: t('onb.nav.title', 'Menu'),
-      text: t('onb.nav.text', 'Start to ten ekran. W Postępach zobaczysz osiągnięcia i najlepsze wyniki, a w Sklepie wydasz zarobione pieniądze.'),
+      text: t('onb.nav.text', 'Start to ten ekran. W Postępach znajdziesz statystyki — swoją celność, liczbę odpowiedzi i rekordy — a także osiągnięcia i najlepsze wyniki. W Sklepie wydasz zarobione pieniądze.'),
     },
     {
       // Points at the real Play button: the player starts the game themselves,

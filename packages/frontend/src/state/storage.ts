@@ -29,6 +29,8 @@ const KEYS = {
   SOUND_SFX: 'milionerzy_sound_sfx',
   SOUND_MUSIC: 'milionerzy_sound_music',
   CATEGORY_STATS: 'milionerzy_category_stats',
+  QUESTIONS_ANSWERED: 'milionerzy_questions_answered',
+  CORRECT_ANSWERS: 'milionerzy_correct_answers',
   FASTEST_ANSWER: 'milionerzy_fastest_answer',
   PERFECT_GAMES: 'milionerzy_perfect_games',
   DAILY_CHALLENGES_COMPLETED: 'milionerzy_daily_challenges_completed',
@@ -83,6 +85,8 @@ export const storage = {
     if (this.getLeaderboard() === null) this.setLeaderboard([]);
     if (this.getBestStreak() === null) this.setBestStreak(0);
     if (this.getCategoryStats() === null) this.setCategoryStats({});
+    if (this.getQuestionsAnswered() === null) this.setQuestionsAnswered(0);
+    if (this.getCorrectAnswers() === null) this.setCorrectAnswers(0);
     if (this.getPerfectGames() === null) this.setPerfectGames(0);
     if (this.getDailyChallengesCompleted() === null) this.setDailyChallengesCompleted(0);
     if (this.getGamesWonNoLifelines() === null) this.setGamesWonNoLifelines(0);
@@ -198,6 +202,15 @@ export const storage = {
     s[cat] = (s[cat] || 0) + 1;
     this.setCategoryStats(s);
   },
+
+  // Lifetime answer tallies (accuracy = correct / answered)
+  getQuestionsAnswered(): number | null { return getInt(KEYS.QUESTIONS_ANSWERED); },
+  setQuestionsAnswered(n: number) { localStorage.setItem(KEYS.QUESTIONS_ANSWERED, n.toString()); },
+  incrementQuestionsAnswered() { this.setQuestionsAnswered((this.getQuestionsAnswered() || 0) + 1); },
+
+  getCorrectAnswers(): number | null { return getInt(KEYS.CORRECT_ANSWERS); },
+  setCorrectAnswers(n: number) { localStorage.setItem(KEYS.CORRECT_ANSWERS, n.toString()); },
+  incrementCorrectAnswers() { this.setCorrectAnswers((this.getCorrectAnswers() || 0) + 1); },
 
   // Fastest answer
   getFastestAnswer(): number | null { return getFloat(KEYS.FASTEST_ANSWER); },
@@ -359,6 +372,8 @@ export const storage = {
         perfectGames: this.getPerfectGames() || 0,
         gamesWonNoLifelines: this.getGamesWonNoLifelines() || 0,
         categoryStats: this.getCategoryStats() || {},
+        questionsAnswered: this.getQuestionsAnswered() || 0,
+        correctAnswers: this.getCorrectAnswers() || 0,
         fastestAnswer: this.getFastestAnswer(),
         dailyChallengesCompleted: this.getDailyChallengesCompleted() || 0,
         dailyCompleted: this.getDailyCompleted(),
@@ -389,6 +404,10 @@ export const storage = {
       this.setPerfectGames(data.progress.perfectGames);
       this.setGamesWonNoLifelines(data.progress.gamesWonNoLifelines);
       this.setCategoryStats(data.progress.categoryStats);
+      // Added later: older saved progress may lack these — keep the local
+      // tally rather than zeroing a returning player's accuracy.
+      this.setQuestionsAnswered(data.progress.questionsAnswered ?? this.getQuestionsAnswered() ?? 0);
+      this.setCorrectAnswers(data.progress.correctAnswers ?? this.getCorrectAnswers() ?? 0);
       if (data.progress.fastestAnswer !== null) {
         localStorage.setItem(KEYS.FASTEST_ANSWER, data.progress.fastestAnswer.toString());
       }
