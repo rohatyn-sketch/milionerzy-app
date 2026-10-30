@@ -260,6 +260,7 @@ function handleTimeOut(): void {
   isAnswered = true;
   resetStreak();
   incorrectAnswersThisGame++;
+  storage.incrementQuestionsAnswered();
 
   const question = questions[currentQuestionIndex];
   const correctIndex = question.answers.findIndex(a => a.correct);
@@ -296,6 +297,8 @@ function handleAnswer(selectedIndex: number): void {
     if (isCorrect) {
       btns[selectedIndex]?.classList.remove('selected');
       btns[selectedIndex]?.classList.add('correct');
+      storage.incrementQuestionsAnswered();
+      storage.incrementCorrectAnswers();
       incrementStreak();
       if (isNewLevel()) playStreak();
 
@@ -320,6 +323,7 @@ function handleAnswer(selectedIndex: number): void {
       btns[selectedIndex]?.classList.add('incorrect');
       resetStreak();
       incorrectAnswersThisGame++;
+      storage.incrementQuestionsAnswered();
       btns[correctIndex]?.classList.add('correct');
 
       currentMoney = Math.max(-gameStartMoney, currentMoney + penaltyPerQ);

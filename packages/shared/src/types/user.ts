@@ -19,6 +19,10 @@ export interface UserProgress {
   fastestAnswer: number | null;
   dailyChallengesCompleted: number;
   dailyCompleted: string | null;
+  // Lifetime answer tallies (added later; optional so progress saved by older
+  // clients still loads). Used for the accuracy stat on the Postepy page.
+  questionsAnswered?: number;
+  correctAnswers?: number;
 }
 
 export interface UserPreferences {

@@ -1694,6 +1694,45 @@ html { scroll-padding-top: calc(var(--app-bar-h) + 8px); }
 .achievements-container .achievements-stats { margin: 0; font-size: 1rem; color: var(--text-secondary); }
 .leaderboard-list { list-style: none; }
 
+/* Progress page tabs */
+.tabs { display: flex; flex-direction: column; gap: 20px; }
+.tab-list {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+.tab {
+    appearance: none; background: none; border: none; cursor: pointer;
+    color: var(--text-secondary); font: inherit; font-weight: 600;
+    padding: 10px 16px; min-height: var(--tap-min);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    border-radius: 8px 8px 0 0; transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.tab:hover { color: var(--text-color); background: rgba(255, 255, 255, 0.05); }
+.tab.active { color: var(--text-color); border-bottom-color: var(--accent); }
+.tab-panel { display: flex; flex-direction: column; gap: 18px; }
+.tab-panel[hidden] { display: none; }
+
+/* Statistics tab: accuracy ring + personal records */
+.stat-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.accuracy-hero { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.accuracy-ring {
+    --pct: 0;
+    position: relative; flex-shrink: 0;
+    width: 132px; height: 132px; border-radius: 50%;
+    background: conic-gradient(var(--accent) calc(var(--pct) * 1%), rgba(255, 255, 255, 0.12) 0);
+    display: grid; place-items: center; text-align: center;
+}
+.accuracy-ring::before {
+    content: ''; position: absolute; inset: 11px; border-radius: 50%;
+    background: rgba(8, 8, 26, 0.95);
+}
+.accuracy-ring-value, .accuracy-ring-label { position: relative; z-index: 1; }
+.accuracy-ring-value { font-size: 2rem; font-weight: 800; color: var(--text-color); font-variant-numeric: tabular-nums; line-height: 1; }
+.accuracy-ring-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.accuracy-breakdown { flex: 1; min-width: 220px; margin-bottom: 0; }
+.records-title { margin-top: 8px; }
+.stat--record dd { color: var(--accent); }
+
 /* Shop page */
 .shop-container { padding: 20px 0; }
 .shop-container .shop-title { text-align: left; font-size: 2rem; }

@@ -18,7 +18,9 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to Ubuntu 26, which the pinned Playwright
+    # (used by the pre-deploy e2e gate) can't install Chromium on.
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       id-token: write

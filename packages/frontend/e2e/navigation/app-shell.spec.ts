@@ -30,7 +30,28 @@ test.describe('App navigation', () => {
   test('the old achievements.html address still works', async ({ page }) => {
     const res = await page.goto('/achievements.html');
     expect(res?.status()).toBe(200);
+    // Achievements now live behind a tab on the Postepy dashboard.
+    await page.getByRole('tab', { name: 'Osiagniecia' }).click();
     await expect(page.locator('.achievements-grid .achievement-card').first()).toBeVisible();
+  });
+
+  test('Statistics tab shows accuracy, questions answered and personal records', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('milionerzy_questions_answered', '8');
+      localStorage.setItem('milionerzy_correct_answers', '6');
+      localStorage.setItem('milionerzy_best_streak', '4');
+      localStorage.setItem('milionerzy_perfect_games', '2');
+    });
+    await page.goto('/achievements.html');
+    await page.getByRole('tab', { name: 'Statystyki' }).click();
+    await expect(page.locator('#panel-stats')).toBeVisible();
+    await expect(page.locator('#stat-accuracy')).toHaveText('75%'); // 6 / 8
+    await expect(page.locator('#stat-answered')).toHaveText('8');
+    await expect(page.locator('#stat-correct')).toHaveText('6');
+    await expect(page.locator('#rec-streak')).toHaveText('4');
+    await expect(page.locator('#rec-perfect')).toHaveText('2');
+    // The overview tab's panel is hidden while Statistics is active.
+    await expect(page.locator('#panel-overview')).toBeHidden();
   });
 
   test('wallet follows balance changes (bonus code)', async ({ page }) => {
