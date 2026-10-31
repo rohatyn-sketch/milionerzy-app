@@ -14,7 +14,7 @@ import { storage } from '../state/storage';
 import { t } from '../features/i18n';
 import { icon, type IconName } from './icons';
 
-export type ShellPage = 'home' | 'progress' | 'shop';
+export type ShellPage = 'home' | 'stats' | 'progress' | 'shop';
 
 interface NavItem {
   page: ShellPage;
@@ -26,6 +26,9 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { page: 'home', href: 'index.html', icon: 'house', key: 'nav.home', pl: 'Start' },
+  // Statistics gets its own top-level destination so players can find their
+  // accuracy and records in one tap.
+  { page: 'stats', href: 'stats.html', icon: 'chart-bar', key: 'nav.stats', pl: 'Statystyki' },
   // The Progress page keeps its historical URL so old links keep working.
   { page: 'progress', href: 'achievements.html', icon: 'trophy', key: 'nav.progress', pl: 'Postepy' },
   { page: 'shop', href: 'shop.html', icon: 'storefront', key: 'nav.shop', pl: 'Sklep' },

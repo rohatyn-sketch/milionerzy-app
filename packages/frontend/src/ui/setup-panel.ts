@@ -101,10 +101,36 @@ function clearImage(uploadArea: HTMLElement): void {
   `;
 }
 
+// Status lines that cycle on the loading overlay so the ~30s wait feels alive.
+function genSteps(): string[] {
+  return [
+    t('gen.step1', 'Analizuje zdjecie...'),
+    t('gen.step2', 'Wyszukuje kluczowe pojecia...'),
+    t('gen.step3', 'Ukladam pytania...'),
+    t('gen.step4', 'Juz prawie gotowe...'),
+  ];
+}
+
 export function setupGenerateButton(onGenerated?: () => void): void {
   const generateBtn = document.getElementById('generate-btn') as HTMLButtonElement | null;
   const statusEl = document.getElementById('generate-status');
   const loadingOverlay = document.getElementById('loading-overlay');
+  const loadingText = document.getElementById('loading-text');
+  let stepTimer: ReturnType<typeof setInterval> | null = null;
+
+  const startSteps = (): void => {
+    if (!loadingText) return;
+    const steps = genSteps();
+    let i = 0;
+    loadingText.textContent = steps[0];
+    stepTimer = setInterval(() => {
+      i = (i + 1) % steps.length;
+      loadingText.textContent = steps[i];
+    }, 3500);
+  };
+  const stopSteps = (): void => {
+    if (stepTimer) { clearInterval(stepTimer); stepTimer = null; }
+  };
 
   if (!generateBtn) return;
 
@@ -121,6 +147,7 @@ export function setupGenerateButton(onGenerated?: () => void): void {
 
     generateBtn.disabled = true;
     if (loadingOverlay) loadingOverlay.classList.add('active');
+    startSteps();
     if (statusEl) { statusEl.textContent = ''; statusEl.className = 'generate-status'; }
 
     try {
@@ -164,6 +191,7 @@ export function setupGenerateButton(onGenerated?: () => void): void {
     } catch (err: any) {
       if (statusEl) { statusEl.textContent = aiRefusalMessage(err) ?? err.message; statusEl.className = 'generate-status error'; }
     } finally {
+      stopSteps();
       generateBtn.disabled = false;
       if (loadingOverlay) loadingOverlay.classList.remove('active');
     }

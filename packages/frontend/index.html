@@ -224,10 +224,16 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
+    <!-- Loading overlay: animated flashcards while the AI builds the set. -->
     <div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite">
-        <div class="loading-spinner"></div>
-        <div class="loading-text" data-i18n="loading.text">Generowanie pytan...</div>
+        <div class="gen-cards" aria-hidden="true">
+            <span class="gen-card gen-card--1">?</span>
+            <span class="gen-card gen-card--2">A</span>
+            <span class="gen-card gen-card--3">B</span>
+            <span class="gen-card gen-card--4">C</span>
+        </div>
+        <div class="loading-text" id="loading-text" data-i18n="loading.text">Generowanie pytan...</div>
+        <div class="gen-progress" aria-hidden="true"><div class="gen-progress-bar"></div></div>
         <div class="loading-subtext" data-i18n="loading.subtext">To moze potrwac do 30 sekund</div>
     </div>
 

@@ -21,6 +21,11 @@ const MUSIC_PATHS: Record<MusicTrack, string> = {
 
 const audioCache: Record<string, HTMLAudioElement> = {};
 let backgroundMusic: HTMLAudioElement | null = null;
+// While a podcast is playing we "duck" (silence) the background music. This is
+// a hard lock: with it set, nothing — not the autoplay-on-gesture retry, not a
+// stray playBackgroundMusic() call — can restart the music until the podcast
+// closes. Without the lock, those paths could un-pause the track mid-podcast.
+let musicDucked = false;
 
 export function initSound(track: MusicTrack = 'menu'): void {
   Object.entries(SFX_PATHS).forEach(([key, path]) => {
@@ -82,6 +87,9 @@ export function playStreak(): void { play('streak'); }
 export function playClick(): void { play('click'); }
 
 export function playBackgroundMusic(): void {
+  // Don't fight the podcast: while ducked, the music stays silent no matter who
+  // asks it to play (see musicDucked).
+  if (musicDucked) return;
   if (backgroundMusic && isMusicEnabled()) {
     backgroundMusic.play().catch(() => {});
   }
@@ -94,10 +102,17 @@ export function stopBackgroundMusic(): void {
   }
 }
 
-// Pause the music without rewinding, so it can resume from the same spot — used
-// to duck the background track while a podcast is playing.
-export function pauseBackgroundMusic(): void {
+// Duck the background music while a podcast plays: pause it (keeping position)
+// and lock it silent so nothing can restart it until unduckBackgroundMusic().
+export function duckBackgroundMusic(): void {
+  musicDucked = true;
   if (backgroundMusic) backgroundMusic.pause();
+}
+
+// Release the duck lock and resume the music (a no-op if it was turned off).
+export function unduckBackgroundMusic(): void {
+  musicDucked = false;
+  playBackgroundMusic();
 }
 
 export function toggleSfx(): boolean {
