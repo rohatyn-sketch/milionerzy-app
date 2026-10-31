@@ -126,6 +126,7 @@ const EN: Record<string, string> = {
   'money.label': 'Your money:',
   'a11y.skip': 'Skip to content',
   'nav.home': 'Home',
+  'nav.stats': 'Statistics',
   'nav.progress': 'Progress',
   'nav.shop': 'Shop',
   'nav.label': 'Main navigation',
@@ -156,7 +157,10 @@ const EN: Record<string, string> = {
   'ai.disclaimer': 'AI can make mistakes.',
   'common.close': 'Close',
 
-  // Statistics tab (accuracy + personal records)
+  // Statistics page (accuracy + personal records)
+  'stats.pageTitle': 'Statistics',
+  'stats.pageSubtitle': 'Your accuracy, progress and personal records.',
+  'progress.moreStats': 'See full statistics',
   'stats.accuracyTitle': 'Your accuracy',
   'stats.accuracy': 'Accuracy',
   'stats.answered': 'Answered',
@@ -227,6 +231,10 @@ const EN: Record<string, string> = {
   'upload.previewAlt': 'Preview',
   'loading.text': 'Generating questions...',
   'loading.subtext': 'This can take up to 30 seconds',
+  'gen.step1': 'Reading your photo...',
+  'gen.step2': 'Finding the key ideas...',
+  'gen.step3': 'Writing the questions...',
+  'gen.step4': 'Almost ready...',
 
   // Class cards
   'class.default': 'Default',
@@ -383,7 +391,7 @@ const EN: Record<string, string> = {
   'onb.play3.text': 'Step 2: choose how many questions with the slider. Fewer questions means a shorter game.',
   'onb.money2.text': 'Correct answers earn you money. Your balance is always shown here, and you can spend it in the Shop on lifelines and themes.',
   'onb.nav.title': 'Menu',
-  'onb.nav.text': 'Home is this screen. Progress has your statistics — accuracy, questions answered and personal records — plus achievements and best scores. The Shop is where you spend your money.',
+  'onb.nav.text': 'Home is this screen. Statistics shows your accuracy and records, Progress your achievements and best scores, and the Shop is where you spend your money.',
   'onb.ready.title': "You're all set!",
   'onb.ready.text': 'Press "Play" whenever you\'re ready. During your first game we\'ll show you how to answer.',
   'onb.ready.cta': 'Got it',

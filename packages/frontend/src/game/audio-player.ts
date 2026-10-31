@@ -1,6 +1,6 @@
 import { t } from '../features/i18n';
 import { openDialog, setupDialog, closeDialog } from '../ui/dialog';
-import { pauseBackgroundMusic, playBackgroundMusic } from '../features/sound';
+import { duckBackgroundMusic, unduckBackgroundMusic } from '../features/sound';
 
 let playerEl: HTMLElement | null = null;
 let audioEl: HTMLAudioElement | null = null;
@@ -48,8 +48,9 @@ export function showAudioPlayer(audioUrl: string, title: string, transcript?: st
   hideAudioPlayer();
 
   // Duck the background music so it doesn't talk over the podcast; it resumes
-  // when the player closes (hideAudioPlayer).
-  pauseBackgroundMusic();
+  // when the player closes (hideAudioPlayer). The duck is a hard lock, so the
+  // autoplay-on-gesture retry can't sneak the music back in mid-podcast.
+  duckBackgroundMusic();
 
   document.body.insertAdjacentHTML('beforeend', createPlayerHTML(title));
   playerEl = document.getElementById('audio-player-overlay');
@@ -146,7 +147,7 @@ export function hideAudioPlayer(): void {
     el.classList.remove('active');
     playerEl = null;
     setTimeout(() => el.remove(), 300);
-    // Resume the background music the podcast was ducking (no-op if music off).
-    playBackgroundMusic();
+    // Release the duck lock and resume the music (no-op if music off).
+    unduckBackgroundMusic();
   }
 }

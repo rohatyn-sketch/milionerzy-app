@@ -28,7 +28,6 @@
             <div class="tabs">
                 <div class="tab-list" role="tablist" aria-label="Sekcje postepow" data-i18n-aria-label="progress.tabsLabel">
                     <button type="button" class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true" data-i18n="progress.tab.overview">Przeglad</button>
-                    <button type="button" class="tab" role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" tabindex="-1" data-i18n="progress.tab.stats">Statystyki</button>
                     <button type="button" class="tab" role="tab" id="tab-achievements" aria-controls="panel-achievements" aria-selected="false" tabindex="-1" data-i18n="progress.tab.achievements">Osiagniecia</button>
                     <button type="button" class="tab" role="tab" id="tab-leaderboard" aria-controls="panel-leaderboard" aria-selected="false" tabindex="-1" data-i18n="progress.tab.leaderboard">Ranking</button>
                 </div>
@@ -42,30 +41,7 @@
                         <div class="stat"><dt data-i18n="stats.wonShort">Wygrane</dt><dd id="games-won">0</dd></div>
                         <div class="stat"><dt data-i18n="stats.bestStreakShort">Najlepsza seria</dt><dd id="best-streak">0</dd></div>
                     </dl>
-                </section>
-
-                <!-- Statistics (accuracy + personal records) -->
-                <section class="tab-panel" role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" hidden>
-                    <h2 class="section-title" data-i18n="stats.accuracyTitle">Twoja celnosc</h2>
-                    <div class="accuracy-hero">
-                        <div class="accuracy-ring" id="accuracy-ring" style="--pct: 0">
-                            <span class="accuracy-ring-value" id="stat-accuracy">0%</span>
-                            <span class="accuracy-ring-label" data-i18n="stats.accuracy">Celnosc</span>
-                        </div>
-                        <dl class="stat-grid stat-grid--3 accuracy-breakdown">
-                            <div class="stat"><dt data-i18n="stats.answered">Odpowiedzi</dt><dd id="stat-answered">0</dd></div>
-                            <div class="stat"><dt data-i18n="stats.correct">Poprawne</dt><dd id="stat-correct">0</dd></div>
-                            <div class="stat"><dt data-i18n="stats.winRate">Skutecznosc gier</dt><dd id="stat-winrate">0%</dd></div>
-                        </dl>
-                    </div>
-
-                    <h2 class="section-title records-title" data-i18n="stats.recordsTitle">Rekordy osobiste</h2>
-                    <dl class="stat-grid stat-grid--4">
-                        <div class="stat stat--record"><dt data-i18n="stats.rec.streak">Najlepsza seria</dt><dd id="rec-streak">0</dd></div>
-                        <div class="stat stat--record"><dt data-i18n="stats.rec.fastest">Najszybsza odpowiedz</dt><dd id="rec-fastest">—</dd></div>
-                        <div class="stat stat--record"><dt data-i18n="stats.rec.perfect">Gry bezbledne</dt><dd id="rec-perfect">0</dd></div>
-                        <div class="stat stat--record"><dt data-i18n="stats.rec.bestWin">Najlepsza wygrana</dt><dd id="rec-bestwin">—</dd></div>
-                    </dl>
+                    <p class="section-desc"><a class="link-arrow" href="stats.html" data-i18n="progress.moreStats">Zobacz pelne statystyki</a></p>
                 </section>
 
                 <!-- Achievements -->

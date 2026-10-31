@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <script>
+      (function () {
+        var h = location.hostname;
+        var allowed = h === 'edufiszka.app' || h === 'localhost' || h === '127.0.0.1';
+        if (!allowed) location.replace('https://edufiszka.app' + location.pathname + location.search + location.hash);
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduFiszka - Statystyki</title>
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+    <a class="skip-link" href="#main" data-i18n="a11y.skip">Przejdz do tresci</a>
+    <div class="spotlight"></div>
+    <div class="stars"></div>
+
+    <header class="app-bar" id="app-bar"></header>
+
+    <main class="container page" id="main">
+        <div class="achievements-container">
+            <h1 class="page-title achievements-title" data-i18n="stats.pageTitle">Statystyki</h1>
+            <p class="page-subtitle achievements-subtitle" data-i18n="stats.pageSubtitle">Twoja celnosc, postepy i rekordy osobiste.</p>
+
+            <section class="section" aria-labelledby="overview-heading">
+                <h2 class="section-title" id="overview-heading" data-i18n="progress.statsTitle">Statystyki</h2>
+                <dl class="stat-grid stat-grid--4">
+                    <div class="stat"><dt data-i18n="money.labelShort">Pieniadze</dt><dd id="money-amount">0 PLN</dd></div>
+                    <div class="stat"><dt data-i18n="stats.playedShort">Rozegrane gry</dt><dd id="games-played">0</dd></div>
+                    <div class="stat"><dt data-i18n="stats.wonShort">Wygrane</dt><dd id="games-won">0</dd></div>
+                    <div class="stat"><dt data-i18n="stats.bestStreakShort">Najlepsza seria</dt><dd id="best-streak">0</dd></div>
+                </dl>
+            </section>
+
+            <section class="section" aria-labelledby="accuracy-heading">
+                <h2 class="section-title" id="accuracy-heading" data-i18n="stats.accuracyTitle">Twoja celnosc</h2>
+                <div class="accuracy-hero">
+                    <div class="accuracy-ring" id="accuracy-ring" style="--pct: 0">
+                        <span class="accuracy-ring-value" id="stat-accuracy">0%</span>
+                        <span class="accuracy-ring-label" data-i18n="stats.accuracy">Celnosc</span>
+                    </div>
+                    <dl class="stat-grid stat-grid--3 accuracy-breakdown">
+                        <div class="stat"><dt data-i18n="stats.answered">Odpowiedzi</dt><dd id="stat-answered">0</dd></div>
+                        <div class="stat"><dt data-i18n="stats.correct">Poprawne</dt><dd id="stat-correct">0</dd></div>
+                        <div class="stat"><dt data-i18n="stats.winRate">Skutecznosc gier</dt><dd id="stat-winrate">0%</dd></div>
+                    </dl>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="records-heading">
+                <h2 class="section-title records-title" id="records-heading" data-i18n="stats.recordsTitle">Rekordy osobiste</h2>
+                <dl class="stat-grid stat-grid--4">
+                    <div class="stat stat--record"><dt data-i18n="stats.rec.streak">Najlepsza seria</dt><dd id="rec-streak">0</dd></div>
+                    <div class="stat stat--record"><dt data-i18n="stats.rec.fastest">Najszybsza odpowiedz</dt><dd id="rec-fastest">—</dd></div>
+                    <div class="stat stat--record"><dt data-i18n="stats.rec.perfect">Gry bezbledne</dt><dd id="rec-perfect">0</dd></div>
+                    <div class="stat stat--record"><dt data-i18n="stats.rec.bestWin">Najlepsza wygrana</dt><dd id="rec-bestwin">—</dd></div>
+                </dl>
+            </section>
+
+            <p class="ai-disclaimer" data-i18n="ai.disclaimer">AI moze popelniac bledy.</p>
+        </div>
+    </main>
+
+    <script type="module" src="src/stats-entry.ts"></script>
+</body>
+</html>

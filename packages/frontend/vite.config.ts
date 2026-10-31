@@ -11,6 +11,7 @@ export default defineConfig({
         game: resolve(__dirname, 'game.html'),
         shop: resolve(__dirname, 'shop.html'),
         achievements: resolve(__dirname, 'achievements.html'),
+        stats: resolve(__dirname, 'stats.html'),
       },
     },
   },

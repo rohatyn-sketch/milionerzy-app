@@ -2,10 +2,10 @@ import { expect, test } from '../fixtures';
 
 test.describe('App navigation', () => {
   test('every top-level page shares the same navigation and wallet', async ({ page }) => {
-    for (const [path, current] of [['/', 'Start'], ['/achievements.html', 'Postepy'], ['/shop.html', 'Sklep']]) {
+    for (const [path, current] of [['/', 'Start'], ['/stats.html', 'Statystyki'], ['/achievements.html', 'Postepy'], ['/shop.html', 'Sklep']]) {
       await page.goto(path);
       const nav = page.getByRole('navigation', { name: 'Nawigacja glowna' });
-      await expect(nav.getByRole('link')).toHaveCount(3);
+      await expect(nav.getByRole('link')).toHaveCount(4);
       await expect(nav.getByRole('link', { name: current, exact: true })).toHaveAttribute('aria-current', 'page');
       await expect(page.locator('#wallet-amount')).toHaveText(/PLN/);
     }
@@ -35,23 +35,22 @@ test.describe('App navigation', () => {
     await expect(page.locator('.achievements-grid .achievement-card').first()).toBeVisible();
   });
 
-  test('Statistics tab shows accuracy, questions answered and personal records', async ({ page }) => {
+  test('Statistics is a top-level page with accuracy, answers and records', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('milionerzy_questions_answered', '8');
       localStorage.setItem('milionerzy_correct_answers', '6');
       localStorage.setItem('milionerzy_best_streak', '4');
       localStorage.setItem('milionerzy_perfect_games', '2');
     });
-    await page.goto('/achievements.html');
-    await page.getByRole('tab', { name: 'Statystyki' }).click();
-    await expect(page.locator('#panel-stats')).toBeVisible();
+    // Reachable straight from the main navigation (not buried in a tab).
+    await page.goto('/');
+    await page.getByRole('navigation').getByRole('link', { name: 'Statystyki', exact: true }).click();
+    await page.waitForURL('**/stats.html');
     await expect(page.locator('#stat-accuracy')).toHaveText('75%'); // 6 / 8
     await expect(page.locator('#stat-answered')).toHaveText('8');
     await expect(page.locator('#stat-correct')).toHaveText('6');
     await expect(page.locator('#rec-streak')).toHaveText('4');
     await expect(page.locator('#rec-perfect')).toHaveText('2');
-    // The overview tab's panel is hidden while Statistics is active.
-    await expect(page.locator('#panel-overview')).toBeHidden();
   });
 
   test('wallet follows balance changes (bonus code)', async ({ page }) => {
@@ -65,7 +64,7 @@ test.describe('App navigation', () => {
 
   test('phones get a bottom tab bar pinned to the bottom, no sideways scroll', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    for (const path of ['/', '/achievements.html', '/shop.html']) {
+    for (const path of ['/', '/stats.html', '/achievements.html', '/shop.html']) {
       await page.goto(path);
       const box = (await page.locator('.app-nav').boundingBox())!;
       expect(Math.round(box.y + box.height)).toBe(667);
