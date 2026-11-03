@@ -686,6 +686,9 @@ body {
     color: var(--text-color); padding: 6px 8px; border-radius: 8px;
     font-size: 0.85rem; cursor: pointer; flex-shrink: 0; min-height: var(--tap-min);
 }
+/* The dropdown list renders on a native (often white) surface, so its options
+   must carry their own dark background + light text or the numbers vanish. */
+.audio-player-speed option { background-color: #16213e; color: #fff; }
 
 .audio-player-transcript-toggle { margin-bottom: 15px; }
 .audio-player-transcript-btn { font-size: 0.85rem; padding: 8px 16px; }
@@ -1760,7 +1763,9 @@ html { scroll-padding-top: calc(var(--app-bar-h) + 8px); }
     content: ''; position: absolute; inset: 11px; border-radius: 50%;
     background: rgba(8, 8, 26, 0.95);
 }
-.accuracy-ring-value, .accuracy-ring-label { position: relative; z-index: 1; }
+/* Nudge the value + label a little below the ring's true centre: the big
+   number otherwise reads slightly high against the circle. */
+.accuracy-ring-value, .accuracy-ring-label { position: relative; z-index: 1; transform: translateY(5px); }
 .accuracy-ring-value { font-size: 2rem; font-weight: 800; color: var(--text-color); font-variant-numeric: tabular-nums; line-height: 1; }
 .accuracy-ring-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 .accuracy-breakdown { flex: 1; min-width: 220px; margin-bottom: 0; }

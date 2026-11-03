@@ -10,7 +10,7 @@ import { initStreak, resetStreak, incrementStreak, getMultiplier, isNewLevel, ge
 import { getTimerForQuestion, getLevelName, getLevelColor, getFiftyRemoves, getDifficultyLevel } from '../features/difficulty';
 import { t } from '../features/i18n';
 import { getDailyQuestions, isCompletedToday, markCompleted, DAILY_MONEY_MULTIPLIER } from '../features/daily';
-import { playCorrect, playIncorrect, playTimerWarning, playClick, playStreak, initSound } from '../features/sound';
+import { playCorrect, playIncorrect, playTimerWarning, playClick, playStreak } from '../features/sound';
 import { checkAll as checkAllAchievements, check as checkAchievement } from '../features/achievements';
 import { addScore as addLeaderboardScore } from '../features/leaderboard';
 import { loadCachedQuestions, getRandomQuestions, shuffleAnswers, getQuestions } from '../features/questions';
@@ -541,7 +541,8 @@ async function leaveToMenu(): Promise<void> {
 
 export function initGame(): void {
   cacheElements();
-  initSound('game');
+  // Sound is already initialised by the page entry (game-entry.ts) before
+  // initGame runs; don't init a second time or we orphan a playing music track.
   applyTheme();
   updateLifelineCounts();
   initKeyboard();

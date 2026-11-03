@@ -27,12 +27,25 @@ let backgroundMusic: HTMLAudioElement | null = null;
 // closes. Without the lock, those paths could un-pause the track mid-podcast.
 let musicDucked = false;
 
+let autoplayArmed = false;
+
 export function initSound(track: MusicTrack = 'menu'): void {
   Object.entries(SFX_PATHS).forEach(([key, path]) => {
     const audio = new Audio(path);
     audio.preload = 'auto';
     audioCache[key] = audio;
   });
+
+  // Tear down any track from a previous initSound() before making a new one.
+  // Some pages init twice (the entry file and initGame both call this); without
+  // this, the first element is orphaned but keeps playing — and pause/duck only
+  // reach the current reference, so that orphan would play over a podcast.
+  if (backgroundMusic) {
+    backgroundMusic.pause();
+    backgroundMusic.src = '';
+    backgroundMusic = null;
+  }
+  musicDucked = false;
 
   backgroundMusic = new Audio(MUSIC_PATHS[track]);
   backgroundMusic.loop = true;
@@ -49,8 +62,11 @@ export function initSound(track: MusicTrack = 'menu'): void {
 }
 
 function armAutoplayOnFirstGesture(): void {
+  if (autoplayArmed) return; // never stack a second set of listeners
+  autoplayArmed = true;
   const events = ['pointerdown', 'keydown', 'touchstart'];
   const start = (): void => {
+    autoplayArmed = false;
     events.forEach((ev) => document.removeEventListener(ev, start));
     if (isMusicEnabled()) playBackgroundMusic();
   };
