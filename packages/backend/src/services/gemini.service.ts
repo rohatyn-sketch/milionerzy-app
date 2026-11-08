@@ -153,10 +153,10 @@ export async function moderateTopic(
         { uid, feature: 'moderation' },
         {
           parts,
-          // gemini-3-flash is a thinking model: it spends output tokens on
+          // The Flash models are thinking models: they spend output tokens on
           // internal reasoning before the answer. thinkingLevel 'low' keeps it
-          // cheap, and 1024 tokens leaves room so the JSON verdict is never
-          // truncated.
+          // cheap AND bounded, so the short JSON verdict fits in 1024 tokens
+          // without truncation (default 'high' thinking could overrun it).
           generationConfig: {
             temperature: 0,
             maxOutputTokens: 1024,

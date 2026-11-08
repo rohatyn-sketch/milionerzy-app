@@ -10,7 +10,14 @@ import { defaultLedgerDb } from './firestore-ledger';
 import { withReservation, type AiFeature, type LedgerDb } from './ledger';
 import { estimateGeminiCostUsd, geminiCostUsd, ttsCostUsd, type UsageMetadata } from './pricing';
 
-export const GEMINI_MODEL = 'gemini-3-flash-preview';
+// The Gemini model every call uses. Overridable with the GEMINI_MODEL env var,
+// so a future model change is a Cloud Run setting, not a code deploy. Defaults
+// to the rolling "latest" alias: Google hot-swaps it to the current stable
+// Flash on new releases (with ~2 weeks' notice) instead of returning 404 when a
+// pinned preview is retired — which is exactly what broke generation when this
+// was pinned to the now-deprecated gemini-3-flash-preview. The alias string is
+// stable, so its price-table key (see spend/pricing.ts) stays valid too.
+export const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-flash-latest';
 
 /** Who is spending, and on what. Required for every paid call. */
 export interface SpendContext {

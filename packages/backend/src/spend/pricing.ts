@@ -30,8 +30,18 @@ export interface ModelPrice {
   outputPerM: number;
 }
 
+// The Flash family shares one price point; the rolling alias (gemini-flash-latest,
+// the default in spend/ai-client.ts) and the pinned stable ids are all listed so
+// the model can be changed via the GEMINI_MODEL env var without a code deploy.
+// Figures mirror the published Flash pricing; settle() records real usage from
+// usageMetadata, so an estimate only shifts the reservation, never the spend.
+const FLASH_PRICE: ModelPrice = { inputPerM: 0.5, cachedInputPerM: 0.05, outputPerM: 3.0 };
+
 export const GEMINI_PRICES: Record<string, ModelPrice> = {
-  'gemini-3-flash-preview': { inputPerM: 0.5, cachedInputPerM: 0.05, outputPerM: 3.0 },
+  'gemini-flash-latest': FLASH_PRICE,
+  'gemini-3.8-flash': FLASH_PRICE,
+  'gemini-3.6-flash': FLASH_PRICE,
+  'gemini-3-flash-preview': FLASH_PRICE,
 };
 
 /** USD per character for Cloud TTS WaveNet voices (conservative, see above). */
